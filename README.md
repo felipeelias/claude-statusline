@@ -3,7 +3,7 @@
 Configurable status line for [Claude Code](https://docs.anthropic.com/en/docs/claude-code).
 
 ```
-Claude Opus 4 | ~/project | $0.42 | ██░░░ 42%
+~/project |  main | Claude Opus 4 | $0.42 | ██░░░ 42%
 ```
 
 ## Installation
@@ -40,18 +40,18 @@ Config file location: `~/.config/claude-statusline/config.toml`
 Works with zero config. The default format is:
 
 ```toml
-format = "$model | $directory | $cost | $context"
+format = "$directory | $git_branch | $model | $cost | $context"
 ```
 
 ## Modules
 
 | Module | Default | Description |
 |--------|---------|-------------|
-| `model` | on | Model display name |
 | `directory` | on | Current directory (tilde-collapsed, truncated) |
+| `git_branch` | on | Current git branch (with worktree indicator) |
+| `model` | on | Model display name |
 | `cost` | on | Session cost in USD |
 | `context` | on | Context window usage with progress bar |
-| `git_branch` | off | Current git branch |
 | `session_timer` | off | Session elapsed time |
 | `lines_changed` | off | Lines added/removed |
 
@@ -60,9 +60,9 @@ format = "$model | $directory | $cost | $context"
 To enable a disabled module, set `disabled = false` and add it to the format string:
 
 ```toml
-format = "$model | $directory | $git_branch | $cost | $context"
+format = "$directory | $git_branch | $model | $cost | $context | $session_timer"
 
-[git_branch]
+[session_timer]
 disabled = false
 ```
 

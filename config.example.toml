@@ -2,7 +2,7 @@
 # Place this file at ~/.config/claude-statusline/config.toml
 
 # Module order and separators (this is the default)
-# format = "$model | $directory | $cost | $context"
+# format = "$directory | $git_branch | $model | $cost | $context"
 
 # Active palette name
 # palette = "default"
@@ -47,8 +47,7 @@
 # ]
 
 # [git_branch]
-# disabled = true
-# format = " {{.Branch}}"
+# format = "\ue0a0 {{.Branch}}{{if .InWorktree}} \uf0e8{{end}}"
 # style = "palette:accent"
 
 # [session_timer]
