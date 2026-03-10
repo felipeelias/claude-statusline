@@ -7,6 +7,12 @@ import (
 	"github.com/felipeelias/claude-statusline/internal/input"
 )
 
+const (
+	msPerSecond      = 1000
+	secondsPerMinute = 60
+	secondsPerHour   = 3600
+)
+
 // SessionTimerModule renders the session elapsed time.
 type SessionTimerModule struct{}
 
@@ -33,13 +39,14 @@ func (SessionTimerModule) Render(data input.Data, cfg config.Config) (string, er
 // formatDuration converts milliseconds to a human-readable duration.
 // If >= 1 hour: H:MM:SS (e.g. 1:05:03), else: M:SS (e.g. 5:03).
 func formatDuration(ms int) string {
-	totalSeconds := ms / 1000
-	hours := totalSeconds / 3600
-	minutes := (totalSeconds % 3600) / 60
-	seconds := totalSeconds % 60
+	totalSeconds := ms / msPerSecond
+	hours := totalSeconds / secondsPerHour
+	minutes := (totalSeconds % secondsPerHour) / secondsPerMinute
+	seconds := totalSeconds % secondsPerMinute
 
 	if hours > 0 {
 		return fmt.Sprintf("%d:%02d:%02d", hours, minutes, seconds)
 	}
+
 	return fmt.Sprintf("%d:%02d", minutes, seconds)
 }

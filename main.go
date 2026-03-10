@@ -12,6 +12,11 @@ import (
 var version = "dev"
 
 func main() {
+	if len(os.Args) > 1 && os.Args[1] == "--version" {
+		_, _ = os.Stdout.WriteString(version + "\n")
+		os.Exit(0)
+	}
+
 	cfg, err := config.Load(config.DefaultPath())
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "config error:", err)
@@ -30,5 +35,5 @@ func main() {
 		os.Exit(1)
 	}
 
-	fmt.Print(output)
+	_, _ = os.Stdout.WriteString(output)
 }

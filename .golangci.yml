@@ -40,4 +40,5 @@ linters:
     rules:
       - path: _test\.go
         linters:
+          - funlen
           - gosec

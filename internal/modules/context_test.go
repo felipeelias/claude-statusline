@@ -1,16 +1,17 @@
-package modules
+package modules_test
 
 import (
 	"testing"
 
 	"github.com/felipeelias/claude-statusline/internal/config"
 	"github.com/felipeelias/claude-statusline/internal/input"
+	"github.com/felipeelias/claude-statusline/internal/modules"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
 func TestContextModule_Name(t *testing.T) {
-	m := ContextModule{}
+	m := modules.ContextModule{}
 	assert.Equal(t, "context", m.Name())
 }
 
@@ -24,13 +25,10 @@ func TestContextModule_Render(t *testing.T) {
 			},
 		}
 
-		result, err := ContextModule{}.Render(data, cfg)
+		result, err := modules.ContextModule{}.Render(data, cfg)
 		require.NoError(t, err)
-		// 40% of 5 bar width = 2 filled, 3 empty
 		assert.Contains(t, result, "40%")
-		// Default bar chars: fill=█ empty=░
 		assert.Contains(t, result, "\u2588\u2588\u2591\u2591\u2591")
-		// palette:ctx_ok -> green -> ANSI 32
 		assert.Contains(t, result, "\033[32m")
 	})
 
@@ -41,10 +39,9 @@ func TestContextModule_Render(t *testing.T) {
 			},
 		}
 
-		result, err := ContextModule{}.Render(data, cfg)
+		result, err := modules.ContextModule{}.Render(data, cfg)
 		require.NoError(t, err)
 		assert.Contains(t, result, "0%")
-		// All empty bars
 		assert.Contains(t, result, "\u2591\u2591\u2591\u2591\u2591")
 	})
 
@@ -55,10 +52,9 @@ func TestContextModule_Render(t *testing.T) {
 			},
 		}
 
-		result, err := ContextModule{}.Render(data, cfg)
+		result, err := modules.ContextModule{}.Render(data, cfg)
 		require.NoError(t, err)
 		assert.Contains(t, result, "100%")
-		// All filled bars
 		assert.Contains(t, result, "\u2588\u2588\u2588\u2588\u2588")
 	})
 
@@ -69,9 +65,8 @@ func TestContextModule_Render(t *testing.T) {
 			},
 		}
 
-		result, err := ContextModule{}.Render(data, cfg)
+		result, err := modules.ContextModule{}.Render(data, cfg)
 		require.NoError(t, err)
-		// palette:ctx_warn -> yellow -> ANSI 33
 		assert.Contains(t, result, "\033[33m")
 	})
 
@@ -82,9 +77,8 @@ func TestContextModule_Render(t *testing.T) {
 			},
 		}
 
-		result, err := ContextModule{}.Render(data, cfg)
+		result, err := modules.ContextModule{}.Render(data, cfg)
 		require.NoError(t, err)
-		// 208 is a 256-color: \033[38;5;208m
 		assert.Contains(t, result, "\033[38;5;208m")
 	})
 
@@ -95,9 +89,8 @@ func TestContextModule_Render(t *testing.T) {
 			},
 		}
 
-		result, err := ContextModule{}.Render(data, cfg)
+		result, err := modules.ContextModule{}.Render(data, cfg)
 		require.NoError(t, err)
-		// palette:ctx_high -> red -> ANSI 31
 		assert.Contains(t, result, "\033[31m")
 	})
 
@@ -108,9 +101,8 @@ func TestContextModule_Render(t *testing.T) {
 			},
 		}
 
-		result, err := ContextModule{}.Render(data, cfg)
+		result, err := modules.ContextModule{}.Render(data, cfg)
 		require.NoError(t, err)
-		// palette:ctx_ok -> green -> ANSI 32
 		assert.Contains(t, result, "\033[32m")
 	})
 }

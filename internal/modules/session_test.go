@@ -1,16 +1,17 @@
-package modules
+package modules_test
 
 import (
 	"testing"
 
 	"github.com/felipeelias/claude-statusline/internal/config"
 	"github.com/felipeelias/claude-statusline/internal/input"
+	"github.com/felipeelias/claude-statusline/internal/modules"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
 func TestSessionTimerModule_Name(t *testing.T) {
-	m := SessionTimerModule{}
+	m := modules.SessionTimerModule{}
 	assert.Equal(t, "session_timer", m.Name())
 }
 
@@ -22,7 +23,7 @@ func TestSessionTimerModule_Render(t *testing.T) {
 			Cost: input.Cost{TotalDurationMs: 3661000},
 		}
 
-		result, err := SessionTimerModule{}.Render(data, cfg)
+		result, err := modules.SessionTimerModule{}.Render(data, cfg)
 		require.NoError(t, err)
 		assert.Contains(t, result, "1:01:01")
 	})
@@ -32,7 +33,7 @@ func TestSessionTimerModule_Render(t *testing.T) {
 			Cost: input.Cost{TotalDurationMs: 125000},
 		}
 
-		result, err := SessionTimerModule{}.Render(data, cfg)
+		result, err := modules.SessionTimerModule{}.Render(data, cfg)
 		require.NoError(t, err)
 		assert.Contains(t, result, "2:05")
 	})
@@ -42,8 +43,8 @@ func TestSessionTimerModule_Render(t *testing.T) {
 			Cost: input.Cost{TotalDurationMs: 0},
 		}
 
-		result, err := SessionTimerModule{}.Render(data, cfg)
+		result, err := modules.SessionTimerModule{}.Render(data, cfg)
 		require.NoError(t, err)
-		assert.Equal(t, "", result)
+		assert.Empty(t, result)
 	})
 }

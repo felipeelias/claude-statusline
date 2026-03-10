@@ -16,7 +16,9 @@ func renderTemplate(name, format string, data any) (string, error) {
 	}
 
 	var buf bytes.Buffer
-	if err := tmpl.Execute(&buf, data); err != nil {
+
+	err = tmpl.Execute(&buf, data)
+	if err != nil {
 		return "", err
 	}
 
@@ -26,6 +28,7 @@ func renderTemplate(name, format string, data any) (string, error) {
 // wrapStyle resolves a style string via the config palette, parses it, and wraps text.
 func wrapStyle(text, styleStr string, cfg config.Config) string {
 	resolved := cfg.ResolveStyle(styleStr)
+
 	return style.Parse(resolved).Wrap(text)
 }
 
@@ -33,10 +36,11 @@ func wrapStyle(text, styleStr string, cfg config.Config) string {
 // Above value is less than the given value wins. If none match, the base style is used.
 func resolveThresholdStyle(value float64, thresholds []config.Threshold, baseStyle string) string {
 	winner := baseStyle
-	for _, t := range thresholds {
-		if value > t.Above {
-			winner = t.Style
+	for _, threshold := range thresholds {
+		if value > threshold.Above {
+			winner = threshold.Style
 		}
 	}
+
 	return winner
 }
