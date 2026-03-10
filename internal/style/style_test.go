@@ -69,6 +69,24 @@ func TestWrapFgNamedPrefix(t *testing.T) {
 	assert.Equal(t, "\033[31mhi\033[0m", s.Wrap("hi"))
 }
 
+func TestWrapFg256Color(t *testing.T) {
+	s := style.Parse("fg:208")
+	assert.Equal(t, "\033[38;5;208mhi\033[0m", s.Wrap("hi"))
+}
+
+func TestWrapBg256Color(t *testing.T) {
+	s := style.Parse("bg:238")
+	assert.Equal(t, "\033[48;5;238mhi\033[0m", s.Wrap("hi"))
+}
+
+func TestWrapFgBg256ColorCombined(t *testing.T) {
+	s := style.Parse("fg:208 bg:238 bold")
+	result := s.Wrap("hi")
+	assert.Contains(t, result, "38;5;208")
+	assert.Contains(t, result, "48;5;238")
+	assert.Contains(t, result, "1")
+}
+
 func TestWrapBgNamed(t *testing.T) {
 	tests := []struct{ name, style, expected string }{
 		{"bg:red", "bg:red", "\033[41mhi\033[0m"},

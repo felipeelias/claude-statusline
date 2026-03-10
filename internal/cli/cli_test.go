@@ -104,6 +104,14 @@ func TestThemesCommand(t *testing.T) {
 
 	result := stdout.String()
 	assert.Contains(t, result, "current:")
+
+	// Theme sections
+	assert.Contains(t, result, "--- default ---")
+	assert.Contains(t, result, "--- powerline ---")
+	assert.Contains(t, result, "--- rounded ---")
+	assert.Contains(t, result, "--- minimal ---")
+
+	// Palette names within each section
 	assert.Contains(t, result, "default:")
 	assert.Contains(t, result, "tokyo-night:")
 	assert.Contains(t, result, "gruvbox:")

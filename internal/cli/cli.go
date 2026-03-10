@@ -141,7 +141,7 @@ func testCommand() *ucli.Command {
 func themesCommand() *ucli.Command {
 	return &ucli.Command{
 		Name:  "themes",
-		Usage: "Preview all built-in themes with mock data",
+		Usage: "Preview all built-in themes and palettes with mock data",
 		Action: func(cmd *ucli.Context) error {
 			writer := cmd.App.Writer
 			data := mockInput()
@@ -159,33 +159,45 @@ func themesCommand() *ucli.Command {
 				return fmt.Errorf("rendering current: %w", err)
 			}
 
-			_, _ = fmt.Fprintf(writer, "current:\n%s\n\n", output)
+			_, _ = fmt.Fprintf(writer, "current:\n  %s\n\n", output)
 
-			// Show all built-in palettes with default config.
-			defaults := config.Default()
+			// Show theme × palette matrix.
+			paletteNames := paletteNamesSorted()
 
-			names := make([]string, 0, len(defaults.Palettes))
-			for name := range defaults.Palettes {
-				names = append(names, name)
-			}
+			for _, themeName := range config.ThemeNames() {
+				_, _ = fmt.Fprintf(writer, "--- %s ---\n", themeName)
 
-			sort.Strings(names)
+				for _, paletteName := range paletteNames {
+					cfg, _ := config.ApplyTheme(themeName)
+					cfg.Palette = paletteName
 
-			for _, name := range names {
-				cfg := config.Default()
-				cfg.Palette = name
+					output, err := render.Render(cfg, data)
+					if err != nil {
+						return fmt.Errorf("rendering %s/%s: %w", themeName, paletteName, err)
+					}
 
-				output, err := render.Render(cfg, data)
-				if err != nil {
-					return fmt.Errorf("rendering theme %s: %w", name, err)
+					_, _ = fmt.Fprintf(writer, "  %-12s %s\n", paletteName+":", output)
 				}
 
-				_, _ = fmt.Fprintf(writer, "%s:\n%s\n\n", name, output)
+				_, _ = fmt.Fprintln(writer)
 			}
 
 			return nil
 		},
 	}
+}
+
+func paletteNamesSorted() []string {
+	defaults := config.Default()
+
+	names := make([]string, 0, len(defaults.Palettes))
+	for name := range defaults.Palettes {
+		names = append(names, name)
+	}
+
+	sort.Strings(names)
+
+	return names
 }
 
 //nolint:mnd // mock data uses literal values by design

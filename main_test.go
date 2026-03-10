@@ -16,6 +16,13 @@ import (
 
 var testBinary string
 
+const mockJSON = `{
+	"model": {"display_name": "Claude Opus 4"},
+	"cwd": "/tmp/test",
+	"cost": {"total_cost_usd": 0.42},
+	"context_window": {"used_percentage": 42.5}
+}`
+
 func TestMain(m *testing.M) {
 	tmp, err := os.MkdirTemp("", "claude-statusline-test-*")
 	if err != nil {
@@ -38,15 +45,8 @@ func TestMain(m *testing.M) {
 }
 
 func TestEndToEnd(t *testing.T) {
-	jsonInput := `{
-		"model": {"display_name": "Claude Opus 4"},
-		"cwd": "/tmp/test",
-		"cost": {"total_cost_usd": 0.42},
-		"context_window": {"used_percentage": 42.5}
-	}`
-
 	cmd := exec.CommandContext(context.Background(), testBinary)
-	cmd.Stdin = strings.NewReader(jsonInput)
+	cmd.Stdin = strings.NewReader(mockJSON)
 	out, err := cmd.Output()
 	require.NoError(t, err)
 
@@ -58,15 +58,8 @@ func TestEndToEnd(t *testing.T) {
 }
 
 func TestEndToEndPromptSubcommand(t *testing.T) {
-	jsonInput := `{
-		"model": {"display_name": "Claude Opus 4"},
-		"cwd": "/tmp/test",
-		"cost": {"total_cost_usd": 0.42},
-		"context_window": {"used_percentage": 42.5}
-	}`
-
 	cmd := exec.CommandContext(context.Background(), testBinary, "prompt")
-	cmd.Stdin = strings.NewReader(jsonInput)
+	cmd.Stdin = strings.NewReader(mockJSON)
 	out, err := cmd.Output()
 	require.NoError(t, err)
 
@@ -96,6 +89,7 @@ func TestEndToEndInitCommand(t *testing.T) {
 
 	content, err := os.ReadFile(configPath)
 	require.NoError(t, err)
+	assert.Contains(t, string(content), `theme = "default"`)
 	assert.Contains(t, string(content), "format =")
 	assert.Contains(t, string(content), `palette = "default"`)
 }
@@ -118,10 +112,33 @@ func TestEndToEndThemesCommand(t *testing.T) {
 
 	result := string(out)
 	assert.Contains(t, result, "current:")
+	assert.Contains(t, result, "--- default ---")
+	assert.Contains(t, result, "--- powerline ---")
+	assert.Contains(t, result, "--- rounded ---")
+	assert.Contains(t, result, "--- minimal ---")
 	assert.Contains(t, result, "default:")
 	assert.Contains(t, result, "tokyo-night:")
 	assert.Contains(t, result, "gruvbox:")
 	assert.Contains(t, result, "catppuccin:")
+}
+
+func TestEndToEndWithThemeConfig(t *testing.T) {
+	dir := t.TempDir()
+	configPath := filepath.Join(dir, "config.toml")
+	err := os.WriteFile(configPath, []byte(`
+theme = "powerline"
+palette = "catppuccin"
+`), 0o644)
+	require.NoError(t, err)
+
+	cmd := exec.CommandContext(context.Background(), testBinary, "--config", configPath)
+	cmd.Stdin = strings.NewReader(mockJSON)
+	out, err := cmd.Output()
+	require.NoError(t, err)
+
+	result := string(out)
+	assert.Contains(t, result, "Claude Opus 4")
+	assert.Contains(t, result, "$0.42")
 }
 
 func TestEndToEndVersion(t *testing.T) {

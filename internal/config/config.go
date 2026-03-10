@@ -11,6 +11,7 @@ import (
 
 // Config holds the full statusline configuration.
 type Config struct {
+	Theme        string                       `toml:"theme"`
 	Format       string                       `toml:"format"`
 	Palette      string                       `toml:"palette"`
 	Palettes     map[string]map[string]string `toml:"palettes"`
@@ -97,48 +98,53 @@ const (
 // defaultPalettes returns all built-in palette definitions.
 func defaultPalettes() map[string]map[string]string {
 	return map[string]map[string]string{
-		"default": {
-			"accent":    "cyan",
-			"cost_ok":   "green",
-			"cost_warn": "yellow",
-			"cost_high": "red",
-			"ctx_ok":    "green",
-			"ctx_warn":  "yellow",
-			"ctx_high":  "red",
-		},
-		"tokyo-night": {
-			"accent":    "#769ff0",
-			"cost_ok":   "#73daca",
-			"cost_warn": "#e0af68",
-			"cost_high": "#f7768e",
-			"ctx_ok":    "#73daca",
-			"ctx_warn":  "#e0af68",
-			"ctx_high":  "#f7768e",
-		},
-		"gruvbox": {
-			"accent":    "#83a598",
-			"cost_ok":   "#b8bb26",
-			"cost_warn": "#fabd2f",
-			"cost_high": "#fb4934",
-			"ctx_ok":    "#b8bb26",
-			"ctx_warn":  "#fabd2f",
-			"ctx_high":  "#fb4934",
-		},
-		"catppuccin": {
-			"accent":    "#89b4fa",
-			"cost_ok":   "#a6e3a1",
-			"cost_warn": "#f9e2af",
-			"cost_high": "#f38ba8",
-			"ctx_ok":    "#a6e3a1",
-			"ctx_warn":  "#f9e2af",
-			"ctx_high":  "#f38ba8",
-		},
+		"default":     paletteDefault(),
+		"tokyo-night": paletteTokyoNight(),
+		"gruvbox":     paletteGruvbox(),
+		"catppuccin":  paletteCatppuccin(),
+	}
+}
+
+func paletteDefault() map[string]string {
+	return map[string]string{
+		"accent": "cyan", "cost_ok": "green", "cost_warn": "yellow", "cost_high": "red",
+		"ctx_ok": "green", "ctx_warn": "yellow", "ctx_high": "red",
+		"seg_fg": "black", "dir_bg": "blue", "git_bg": "green",
+		"model_bg": "magenta", "cost_bg": "238", "ctx_bg": "236",
+	}
+}
+
+func paletteTokyoNight() map[string]string {
+	return map[string]string{
+		"accent": "#769ff0", "cost_ok": "#73daca", "cost_warn": "#e0af68", "cost_high": "#f7768e",
+		"ctx_ok": "#73daca", "ctx_warn": "#e0af68", "ctx_high": "#f7768e",
+		"seg_fg": "#1a1b26", "dir_bg": "#769ff0", "git_bg": "#73daca",
+		"model_bg": "#bb9af7", "cost_bg": "#414868", "ctx_bg": "#24283b",
+	}
+}
+
+func paletteGruvbox() map[string]string {
+	return map[string]string{
+		"accent": "#83a598", "cost_ok": "#b8bb26", "cost_warn": "#fabd2f", "cost_high": "#fb4934",
+		"ctx_ok": "#b8bb26", "ctx_warn": "#fabd2f", "ctx_high": "#fb4934",
+		"seg_fg": "#282828", "dir_bg": "#83a598", "git_bg": "#b8bb26",
+		"model_bg": "#d3869b", "cost_bg": "#504945", "ctx_bg": "#3c3836",
+	}
+}
+
+func paletteCatppuccin() map[string]string {
+	return map[string]string{
+		"accent": "#89b4fa", "cost_ok": "#a6e3a1", "cost_warn": "#f9e2af", "cost_high": "#f38ba8",
+		"ctx_ok": "#a6e3a1", "ctx_warn": "#f9e2af", "ctx_high": "#f38ba8",
+		"seg_fg": "#1e1e2e", "dir_bg": "#89b4fa", "git_bg": "#a6e3a1",
+		"model_bg": "#cba6f7", "cost_bg": "#45475a", "ctx_bg": "#313244",
 	}
 }
 
 // Default returns a Config with hardcoded default values.
 func Default() Config {
 	return Config{
+		Theme:    "default",
 		Format:   "$directory | $git_branch | $model | $cost | $context",
 		Palette:  "default",
 		Palettes: defaultPalettes(),
@@ -189,19 +195,37 @@ func Default() Config {
 	}
 }
 
+// themeHeader is used to extract the theme field from a TOML file
+// before applying the full config on top.
+type themeHeader struct {
+	Theme string `toml:"theme"`
+}
+
 // Load reads a TOML config file and merges it with defaults.
 // If the file does not exist, Default() is returned with no error.
 // If the file exists but has parse errors, an error is returned.
+//
+// Loading is two-pass: first the theme field is read to select the base
+// config, then the full file is decoded on top so user overrides layer cleanly.
 func Load(path string) (Config, error) {
-	cfg := Default()
-
 	_, err := os.Stat(path)
 	if errors.Is(err, os.ErrNotExist) {
-		return cfg, nil
+		return Default(), nil
 	}
 	if err != nil {
 		return Config{}, err
 	}
+
+	// Pass 1: read theme field.
+	var header themeHeader
+
+	_, err = toml.DecodeFile(path, &header)
+	if err != nil {
+		return Config{}, err
+	}
+
+	// Pass 2: start from themed base, decode user overrides on top.
+	cfg, _ := ApplyTheme(header.Theme)
 
 	_, err = toml.DecodeFile(path, &cfg)
 	if err != nil {
@@ -225,15 +249,22 @@ func DefaultPath() string {
 const sampleConfigTemplate = `# claude-statusline configuration
 # Docs: https://github.com/felipeelias/claude-statusline
 
+# Theme controls the visual structure (separators, padding, icons).
+# Built-in themes: "default", "powerline", "rounded", "minimal"
+# Note: "powerline" and "rounded" require a Nerd Font.
+theme = "default"
+
 # Format string controls the layout. Modules are referenced with $name.
 # Styled text groups use [text](style) syntax.
+# When using a theme, you typically don't need to change the format.
 format = "$directory | $git_branch | $model | $cost | $context"
 
 # Built-in palettes: "default", "tokyo-night", "gruvbox", "catppuccin"
-# Run 'claude-statusline themes' to preview all palettes.
+# Run 'claude-statusline themes' to preview all themes and palettes.
 palette = "default"
 
 # Custom palette: override or add your own palette colors.
+# Segment keys (seg_fg, dir_bg, etc.) are used by powerline/rounded themes.
 # [palettes.my-theme]
 # accent = "#ff5500"
 # cost_ok = "green"
@@ -242,6 +273,12 @@ palette = "default"
 # ctx_ok = "green"
 # ctx_warn = "yellow"
 # ctx_high = "red"
+# seg_fg = "black"
+# dir_bg = "blue"
+# git_bg = "green"
+# model_bg = "magenta"
+# cost_bg = "238"
+# ctx_bg = "236"
 
 # Module configuration. Each module supports format, style, and disabled.
 # Styles: "bold", "dim", "italic", "fg:#hex", "bg:#hex", "palette:name"
@@ -264,7 +301,7 @@ palette = "default"
 # ]
 
 # [context]
-# format = '{{.Bar}} {{printf "%.0f" .UsedPct}}%%'
+# format = '{{.Bar}} {{printf "%.0f" .UsedPct}}%'
 # style = "palette:ctx_ok"
 # bar_width = 5
 # bar_fill = "█"
@@ -298,12 +335,11 @@ func SampleConfig() string {
 }
 
 // ResolveStyle resolves palette references in a style string.
-// If styleStr starts with "palette:", the key after the prefix is looked up in
-// the active palette. If found, the palette value is returned.
-// Otherwise styleStr is returned unchanged.
+// It handles both bare "palette:key" tokens and compound styles like
+// "fg:palette:key bg:palette:key bold". Each space-separated token is
+// checked for palette references and resolved independently.
 func (c Config) ResolveStyle(styleStr string) string {
-	key, found := strings.CutPrefix(styleStr, "palette:")
-	if !found {
+	if !strings.Contains(styleStr, "palette:") {
 		return styleStr
 	}
 
@@ -312,10 +348,37 @@ func (c Config) ResolveStyle(styleStr string) string {
 		return styleStr
 	}
 
-	value, valueExists := palette[key]
-	if !valueExists {
-		return styleStr
+	var result []string
+
+	for token := range strings.FieldsSeq(styleStr) {
+		result = append(result, resolveToken(token, palette))
 	}
 
-	return value
+	return strings.Join(result, " ")
+}
+
+// resolveToken resolves a single token against a palette.
+// Handles: "palette:key", "fg:palette:key", "bg:palette:key".
+func resolveToken(token string, palette map[string]string) string {
+	if key, found := strings.CutPrefix(token, "palette:"); found {
+		if value, ok := palette[key]; ok {
+			return value
+		}
+
+		return token
+	}
+
+	for _, prefix := range []string{"fg:", "bg:"} {
+		if rest, found := strings.CutPrefix(token, prefix); found {
+			if key, hasPalette := strings.CutPrefix(rest, "palette:"); hasPalette {
+				if value, ok := palette[key]; ok {
+					return prefix + value
+				}
+
+				return token
+			}
+		}
+	}
+
+	return token
 }

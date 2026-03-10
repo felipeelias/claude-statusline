@@ -53,7 +53,7 @@ claude-statusline themes
 | `prompt` | Render the status line (also the default when no command is given) |
 | `init` | Create default config at `~/.config/claude-statusline/config.toml` |
 | `test` | Render with your config and mock data (for config iteration) |
-| `themes` | Preview all built-in themes with mock data |
+| `themes` | Preview all built-in themes and palettes with mock data |
 
 Global flags: `--config / -c` to override config path, `--version`.
 
@@ -96,19 +96,33 @@ Modules support a `style` field that accepts several formats:
 
 - **Named:** `red`, `green`, `cyan`, `bold`, `dim`, `italic`
 - **Hex:** `fg:#ff5500`, `bg:#333333`
-- **256-color:** `208`
+- **256-color:** `208`, `fg:208`, `bg:238`
 - **Combined:** `fg:#aaa bg:#333 bold`
-- **Palette:** `palette:accent`
+- **Palette:** `palette:accent`, `fg:palette:seg_fg bg:palette:dir_bg`
 
-## Themes
+## Themes and palettes
 
-Four palettes are built in: `default`, `tokyo-night`, `gruvbox`, and `catppuccin`. Switch with a single line:
+**Themes** control the visual structure (separators, padding, icons). **Palettes** control the colors. Any theme works with any palette.
 
 ```toml
-palette = "tokyo-night"
+theme = "powerline"
+palette = "catppuccin"
 ```
 
-Preview all themes: `claude-statusline themes`
+Preview all combinations: `claude-statusline themes`
+
+### Built-in themes
+
+| Theme | Look | Needs Nerd Font |
+|-------|------|-----------------|
+| `default` | Flat with `\|` pipes | No |
+| `powerline` | Arrow segments with colored backgrounds | Yes |
+| `rounded` | Capsule/pill segments with gaps | Yes |
+| `minimal` | Clean spacing, no separators or icons | No |
+
+### Built-in palettes
+
+Four palettes are built in: `default`, `tokyo-night`, `gruvbox`, and `catppuccin`.
 
 You can also define your own palette:
 
@@ -123,86 +137,27 @@ cost_high = "red"
 ctx_ok = "green"
 ctx_warn = "yellow"
 ctx_high = "red"
+# Segment colors (used by powerline/rounded themes)
+seg_fg = "black"
+dir_bg = "blue"
+git_bg = "green"
+model_bg = "magenta"
+cost_bg = "238"
+ctx_bg = "236"
 ```
 
-## Powerline
+### Overriding theme defaults
 
-Opt into powerline-style separators. Requires a [Nerd Font](https://www.nerdfonts.com/).
-
-The format string uses styled text groups for segment transitions:
-
-- `` (start cap) with `fg:` matching the first segment background
-- `` (arrow) with `fg:prev_bg bg:next_bg` for transitions between segments
-- Each module's `style` must include a matching `bg:` color
-- Each module's `format` should include padding spaces
+Themes set the format string and module configs, but you can override any field:
 
 ```toml
-format = "[](fg:blue)$directory[](fg:blue bg:green)$git_branch[](fg:green bg:magenta)$model[](fg:magenta)"
+theme = "powerline"
+palette = "catppuccin"
 
-[directory]
-format = " {{.Dir}} "
-style = "fg:black bg:blue"
-
-[git_branch]
-disabled = false
-format = "  {{.Branch}} "
-style = "fg:black bg:green"
-
+# Override just one module
 [model]
 format = " {{.DisplayName}} "
-style = "fg:black bg:magenta bold"
-```
-
-### Catppuccin Mocha Powerline
-
-A complete powerline theme using [Catppuccin Mocha](https://catppuccin.com/) colors:
-
-```toml
-palette = "catppuccin-mocha"
-
-format = "[](fg:#89b4fa)$directory[](fg:#89b4fa bg:#a6e3a1)$git_branch[](fg:#a6e3a1 bg:#cba6f7)$model[](fg:#cba6f7 bg:#45475a)$cost[](fg:#45475a bg:#313244)$context[](fg:#313244)"
-
-[palettes.catppuccin-mocha]
-accent = "#89b4fa"
-cost_ok = "#a6e3a1"
-cost_warn = "#f9e2af"
-cost_high = "#f38ba8"
-ctx_ok = "#a6e3a1"
-ctx_warn = "#f9e2af"
-ctx_high = "#f38ba8"
-
-[directory]
-format = " {{.Dir}} "
-style = "fg:#1e1e2e bg:#89b4fa"
-
-[git_branch]
-disabled = false
-format = "  {{.Branch}}{{if .InWorktree}} {{end}} "
-style = "fg:#1e1e2e bg:#a6e3a1"
-
-[model]
-format = " {{.DisplayName}} "
-style = "fg:#1e1e2e bg:#cba6f7 bold"
-
-[cost]
-format = " ${{printf \"%.2f\" .TotalCostUSD}} "
-style = "fg:#a6e3a1 bg:#45475a"
-thresholds = [
-  { above = 1.0, style = "fg:#f9e2af bg:#45475a" },
-  { above = 5.0, style = "fg:#f38ba8 bg:#45475a" },
-]
-
-[context]
-format = " {{.Bar}} {{printf \"%.0f\" .UsedPct}}% "
-style = "fg:#a6e3a1 bg:#313244"
-bar_width = 5
-bar_fill = "█"
-bar_empty = "░"
-thresholds = [
-  { above = 50, style = "fg:#f9e2af bg:#313244" },
-  { above = 70, style = "fg:#fab387 bg:#313244" },
-  { above = 90, style = "fg:#f38ba8 bg:#313244" },
-]
+style = "fg:palette:seg_fg bg:palette:model_bg bold"
 ```
 
 ## License

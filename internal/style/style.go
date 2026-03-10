@@ -109,6 +109,11 @@ func parseFg(value string) ([]string, bool) {
 		return []string{strconv.Itoa(code)}, true
 	}
 
+	n, err := strconv.Atoi(value)
+	if err == nil && n >= 0 && n <= 255 {
+		return []string{fmt.Sprintf("38;5;%d", n)}, true
+	}
+
 	return nil, false
 }
 
@@ -119,6 +124,11 @@ func parseBg(value string) ([]string, bool) {
 
 	if code, ok := namedColors[value]; ok {
 		return []string{strconv.Itoa(code + ansiFgToBgOffset)}, true
+	}
+
+	n, err := strconv.Atoi(value)
+	if err == nil && n >= 0 && n <= 255 {
+		return []string{fmt.Sprintf("48;5;%d", n)}, true
 	}
 
 	return nil, false
