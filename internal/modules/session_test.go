@@ -1,0 +1,49 @@
+package modules
+
+import (
+	"testing"
+
+	"github.com/felipeelias/claude-statusline/internal/config"
+	"github.com/felipeelias/claude-statusline/internal/input"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+)
+
+func TestSessionTimerModule_Name(t *testing.T) {
+	m := SessionTimerModule{}
+	assert.Equal(t, "session_timer", m.Name())
+}
+
+func TestSessionTimerModule_Render(t *testing.T) {
+	cfg := config.Default()
+
+	t.Run("formats hours minutes seconds", func(t *testing.T) {
+		data := input.Data{
+			Cost: input.Cost{TotalDurationMs: 3661000},
+		}
+
+		result, err := SessionTimerModule{}.Render(data, cfg)
+		require.NoError(t, err)
+		assert.Contains(t, result, "1:01:01")
+	})
+
+	t.Run("formats minutes seconds without hours", func(t *testing.T) {
+		data := input.Data{
+			Cost: input.Cost{TotalDurationMs: 125000},
+		}
+
+		result, err := SessionTimerModule{}.Render(data, cfg)
+		require.NoError(t, err)
+		assert.Contains(t, result, "2:05")
+	})
+
+	t.Run("zero duration returns empty string", func(t *testing.T) {
+		data := input.Data{
+			Cost: input.Cost{TotalDurationMs: 0},
+		}
+
+		result, err := SessionTimerModule{}.Render(data, cfg)
+		require.NoError(t, err)
+		assert.Equal(t, "", result)
+	})
+}
