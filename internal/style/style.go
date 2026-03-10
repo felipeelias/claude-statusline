@@ -80,6 +80,10 @@ func parseToken(token string) ([]string, bool) {
 		return []string{strconv.Itoa(code)}, true
 	}
 
+	if strings.HasPrefix(token, "#") {
+		return parseHexColor(token, ansiFgExtended)
+	}
+
 	if value, found := strings.CutPrefix(token, "fg:"); found {
 		return parseFg(value)
 	}

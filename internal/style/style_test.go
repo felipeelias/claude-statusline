@@ -30,6 +30,11 @@ func TestWrapHex(t *testing.T) {
 	assert.Equal(t, "\033[38;2;255;85;0mhi\033[0m", s.Wrap("hi"))
 }
 
+func TestWrapBareHex(t *testing.T) {
+	s := style.Parse("#769ff0")
+	assert.Equal(t, "\033[38;2;118;159;240mhi\033[0m", s.Wrap("hi"))
+}
+
 func TestWrapBg(t *testing.T) {
 	s := style.Parse("bg:blue")
 	assert.Equal(t, "\033[44mhi\033[0m", s.Wrap("hi"))

@@ -28,10 +28,34 @@ Add to your Claude Code settings (`.claude/settings.json` or global settings):
 {
   "statusLine": {
     "type": "command",
-    "command": "claude-statusline"
+    "command": "claude-statusline prompt"
   }
 }
 ```
+
+Generate a starter config:
+
+```bash
+claude-statusline init
+```
+
+Preview with mock data:
+
+```bash
+claude-statusline test
+claude-statusline themes
+```
+
+## Commands
+
+| Command | Description |
+|---------|-------------|
+| `prompt` | Render the status line (also the default when no command is given) |
+| `init` | Create default config at `~/.config/claude-statusline/config.toml` |
+| `test` | Render with your config and mock data (for config iteration) |
+| `themes` | Preview all built-in themes with mock data |
+
+Global flags: `--config / -c` to override config path, `--version`.
 
 ## Configuration
 
@@ -78,51 +102,27 @@ Modules support a `style` field that accepts several formats:
 
 ## Themes
 
-Set a palette and define its colors in your config. Copy-paste any of these:
-
-### Tokyo Night
+Four palettes are built in: `default`, `tokyo-night`, `gruvbox`, and `catppuccin`. Switch with a single line:
 
 ```toml
 palette = "tokyo-night"
-
-[palettes.tokyo-night]
-accent = "#769ff0"
-cost_ok = "#73daca"
-cost_warn = "#e0af68"
-cost_high = "#f7768e"
-ctx_ok = "#73daca"
-ctx_warn = "#e0af68"
-ctx_high = "#f7768e"
 ```
 
-### Gruvbox
+Preview all themes: `claude-statusline themes`
+
+You can also define your own palette:
 
 ```toml
-palette = "gruvbox"
+palette = "my-theme"
 
-[palettes.gruvbox]
-accent = "#83a598"
-cost_ok = "#b8bb26"
-cost_warn = "#fabd2f"
-cost_high = "#fb4934"
-ctx_ok = "#b8bb26"
-ctx_warn = "#fabd2f"
-ctx_high = "#fb4934"
-```
-
-### Catppuccin Mocha
-
-```toml
-palette = "catppuccin"
-
-[palettes.catppuccin]
-accent = "#89b4fa"
-cost_ok = "#a6e3a1"
-cost_warn = "#f9e2af"
-cost_high = "#f38ba8"
-ctx_ok = "#a6e3a1"
-ctx_warn = "#f9e2af"
-ctx_high = "#f38ba8"
+[palettes.my-theme]
+accent = "#ff5500"
+cost_ok = "green"
+cost_warn = "yellow"
+cost_high = "red"
+ctx_ok = "green"
+ctx_warn = "yellow"
+ctx_high = "red"
 ```
 
 ## Powerline

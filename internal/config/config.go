@@ -94,22 +94,54 @@ const (
 	ctxHighThreshold        = 90
 )
 
+// defaultPalettes returns all built-in palette definitions.
+func defaultPalettes() map[string]map[string]string {
+	return map[string]map[string]string{
+		"default": {
+			"accent":    "cyan",
+			"cost_ok":   "green",
+			"cost_warn": "yellow",
+			"cost_high": "red",
+			"ctx_ok":    "green",
+			"ctx_warn":  "yellow",
+			"ctx_high":  "red",
+		},
+		"tokyo-night": {
+			"accent":    "#769ff0",
+			"cost_ok":   "#73daca",
+			"cost_warn": "#e0af68",
+			"cost_high": "#f7768e",
+			"ctx_ok":    "#73daca",
+			"ctx_warn":  "#e0af68",
+			"ctx_high":  "#f7768e",
+		},
+		"gruvbox": {
+			"accent":    "#83a598",
+			"cost_ok":   "#b8bb26",
+			"cost_warn": "#fabd2f",
+			"cost_high": "#fb4934",
+			"ctx_ok":    "#b8bb26",
+			"ctx_warn":  "#fabd2f",
+			"ctx_high":  "#fb4934",
+		},
+		"catppuccin": {
+			"accent":    "#89b4fa",
+			"cost_ok":   "#a6e3a1",
+			"cost_warn": "#f9e2af",
+			"cost_high": "#f38ba8",
+			"ctx_ok":    "#a6e3a1",
+			"ctx_warn":  "#f9e2af",
+			"ctx_high":  "#f38ba8",
+		},
+	}
+}
+
 // Default returns a Config with hardcoded default values.
 func Default() Config {
 	return Config{
-		Format:  "$directory | $git_branch | $model | $cost | $context",
-		Palette: "default",
-		Palettes: map[string]map[string]string{
-			"default": {
-				"accent":    "cyan",
-				"cost_ok":   "green",
-				"cost_warn": "yellow",
-				"cost_high": "red",
-				"ctx_ok":    "green",
-				"ctx_warn":  "yellow",
-				"ctx_high":  "red",
-			},
-		},
+		Format:   "$directory | $git_branch | $model | $cost | $context",
+		Palette:  "default",
+		Palettes: defaultPalettes(),
 		Model: ModelConfig{
 			Format: "{{.DisplayName}}",
 			Style:  "bold",
@@ -187,6 +219,82 @@ func DefaultPath() string {
 	}
 
 	return filepath.Join(home, ".config", "claude-statusline", "config.toml")
+}
+
+// sampleConfigTemplate is the commented TOML config template for the init command.
+const sampleConfigTemplate = `# claude-statusline configuration
+# Docs: https://github.com/felipeelias/claude-statusline
+
+# Format string controls the layout. Modules are referenced with $name.
+# Styled text groups use [text](style) syntax.
+format = "$directory | $git_branch | $model | $cost | $context"
+
+# Built-in palettes: "default", "tokyo-night", "gruvbox", "catppuccin"
+# Run 'claude-statusline themes' to preview all palettes.
+palette = "default"
+
+# Custom palette: override or add your own palette colors.
+# [palettes.my-theme]
+# accent = "#ff5500"
+# cost_ok = "green"
+# cost_warn = "yellow"
+# cost_high = "red"
+# ctx_ok = "green"
+# ctx_warn = "yellow"
+# ctx_high = "red"
+
+# Module configuration. Each module supports format, style, and disabled.
+# Styles: "bold", "dim", "italic", "fg:#hex", "bg:#hex", "palette:name"
+
+# [model]
+# format = "{{.DisplayName}}"
+# style = "bold"
+
+# [directory]
+# format = "{{.Dir}}"
+# style = "palette:accent"
+# truncation_length = 3
+
+# [cost]
+# format = '${{printf "%.2f" .TotalCostUSD}}'
+# style = "palette:cost_ok"
+# thresholds = [
+#   { above = 1.0, style = "palette:cost_warn" },
+#   { above = 5.0, style = "palette:cost_high" },
+# ]
+
+# [context]
+# format = '{{.Bar}} {{printf "%.0f" .UsedPct}}%%'
+# style = "palette:ctx_ok"
+# bar_width = 5
+# bar_fill = "█"
+# bar_empty = "░"
+# thresholds = [
+#   { above = 50, style = "palette:ctx_warn" },
+#   { above = 70, style = "208" },
+#   { above = 90, style = "palette:ctx_high" },
+# ]
+
+# [git_branch]
+# format = " {{.Branch}}{{if .InWorktree}} {{end}}"
+# style = "palette:accent"
+
+# Disabled by default. Set disabled = false and add to format string to enable.
+# [session_timer]
+# disabled = false
+# format = "{{.Elapsed}}"
+# style = "dim"
+
+# [lines_changed]
+# disabled = false
+# format = "+{{.Added}} -{{.Removed}}"
+# added_style = "green"
+# removed_style = "red"
+`
+
+// SampleConfig returns a commented TOML config template for the init command.
+func SampleConfig() string {
+	return sampleConfigTemplate
 }
 
 // ResolveStyle resolves palette references in a style string.

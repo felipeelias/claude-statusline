@@ -24,6 +24,16 @@ func TestDefault(t *testing.T) {
 	assert.Len(t, cfg.Context.Thresholds, 3)
 }
 
+func TestDefaultPalettes(t *testing.T) {
+	cfg := config.Default()
+	expected := []string{"default", "tokyo-night", "gruvbox", "catppuccin"}
+	for _, name := range expected {
+		_, ok := cfg.Palettes[name]
+		assert.True(t, ok, "missing built-in palette: %s", name)
+	}
+	assert.Len(t, cfg.Palettes, len(expected))
+}
+
 func TestLoadFromFile(t *testing.T) {
 	dir := t.TempDir()
 	path := filepath.Join(dir, "config.toml")
@@ -62,6 +72,19 @@ func TestResolveStyle(t *testing.T) {
 	assert.Equal(t, "cyan", cfg.ResolveStyle("palette:accent"))
 	assert.Equal(t, "bold green", cfg.ResolveStyle("bold green"))
 	assert.Equal(t, "palette:nonexistent", cfg.ResolveStyle("palette:nonexistent"))
+}
+
+func TestSampleConfig(t *testing.T) {
+	sample := config.SampleConfig()
+	assert.Contains(t, sample, "format =")
+	assert.Contains(t, sample, `palette = "default"`)
+	assert.Contains(t, sample, "tokyo-night")
+	assert.Contains(t, sample, "gruvbox")
+	assert.Contains(t, sample, "catppuccin")
+	assert.Contains(t, sample, "# [model]")
+	assert.Contains(t, sample, "# [cost]")
+	assert.Contains(t, sample, "# [context]")
+	assert.Contains(t, sample, "# [session_timer]")
 }
 
 func TestDefaultPath(t *testing.T) {

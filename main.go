@@ -4,36 +4,17 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/felipeelias/claude-statusline/internal/config"
-	"github.com/felipeelias/claude-statusline/internal/input"
-	"github.com/felipeelias/claude-statusline/internal/render"
+	appcli "github.com/felipeelias/claude-statusline/internal/cli"
 )
 
 var version = "dev"
 
 func main() {
-	if len(os.Args) > 1 && os.Args[1] == "--version" {
-		_, _ = os.Stdout.WriteString(version + "\n")
-		os.Exit(0)
-	}
+	app := appcli.New(version)
 
-	cfg, err := config.Load(config.DefaultPath())
+	err := app.Run(os.Args)
 	if err != nil {
-		fmt.Fprintln(os.Stderr, "config error:", err)
+		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
 	}
-
-	data, err := input.Parse(os.Stdin)
-	if err != nil {
-		fmt.Fprintln(os.Stderr, "input error:", err)
-		os.Exit(1)
-	}
-
-	output, err := render.Render(cfg, data)
-	if err != nil {
-		fmt.Fprintln(os.Stderr, "render error:", err)
-		os.Exit(1)
-	}
-
-	_, _ = os.Stdout.WriteString(output)
 }
