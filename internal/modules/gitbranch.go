@@ -40,10 +40,12 @@ func (GitBranchModule) Render(data input.Data, cfg config.Config) (string, error
 // gitBranch runs git rev-parse to get the current branch name.
 // Returns empty string if the directory is not a git repo or git is not installed.
 func gitBranch(cwd string) string {
+	//nolint:noctx // no context available in module interface
 	cmd := exec.Command("git", "-C", cwd, "rev-parse", "--abbrev-ref", "HEAD")
 	out, err := cmd.Output()
 	if err != nil {
 		return ""
 	}
+
 	return strings.TrimSpace(string(out))
 }

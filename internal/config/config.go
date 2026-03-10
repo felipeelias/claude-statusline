@@ -85,6 +85,15 @@ type LinesChangedConfig struct {
 	Disabled     bool   `toml:"disabled"`
 }
 
+const (
+	defaultTruncationLength = 3
+	defaultBarWidth         = 5
+	costWarnThreshold       = 5.0
+	ctxWarnThreshold        = 50
+	ctxMedThreshold         = 70
+	ctxHighThreshold        = 90
+)
+
 // Default returns a Config with hardcoded default values.
 func Default() Config {
 	return Config{
@@ -92,13 +101,13 @@ func Default() Config {
 		Palette: "default",
 		Palettes: map[string]map[string]string{
 			"default": {
-				"accent":   "cyan",
-				"cost_ok":  "green",
+				"accent":    "cyan",
+				"cost_ok":   "green",
 				"cost_warn": "yellow",
 				"cost_high": "red",
-				"ctx_ok":   "green",
-				"ctx_warn": "yellow",
-				"ctx_high": "red",
+				"ctx_ok":    "green",
+				"ctx_warn":  "yellow",
+				"ctx_high":  "red",
 			},
 		},
 		Model: ModelConfig{
@@ -108,26 +117,26 @@ func Default() Config {
 		Directory: DirectoryConfig{
 			Format:           "{{.Dir}}",
 			Style:            "palette:accent",
-			TruncationLength: 3,
+			TruncationLength: defaultTruncationLength,
 		},
 		Cost: CostConfig{
 			Format: `${{printf "%.2f" .TotalCostUSD}}`,
 			Style:  "palette:cost_ok",
 			Thresholds: []Threshold{
 				{Above: 1.0, Style: "palette:cost_warn"},
-				{Above: 5.0, Style: "palette:cost_high"},
+				{Above: costWarnThreshold, Style: "palette:cost_high"},
 			},
 		},
 		Context: ContextConfig{
 			Format:   `{{.Bar}} {{printf "%.0f" .UsedPct}}%`,
 			Style:    "palette:ctx_ok",
-			BarWidth: 5,
+			BarWidth: defaultBarWidth,
 			BarFill:  "\u2588",
 			BarEmpty: "\u2591",
 			Thresholds: []Threshold{
-				{Above: 50, Style: "palette:ctx_warn"},
-				{Above: 70, Style: "208"},
-				{Above: 90, Style: "palette:ctx_high"},
+				{Above: ctxWarnThreshold, Style: "palette:ctx_warn"},
+				{Above: ctxMedThreshold, Style: "208"},
+				{Above: ctxHighThreshold, Style: "palette:ctx_high"},
 			},
 		},
 		GitBranch: GitBranchConfig{
@@ -170,34 +179,34 @@ func Load(path string) (Config, error) {
 	return cfg, nil
 }
 
-// DefaultPath returns the default config file path: ~/.config/claude-statusline/config.toml
+// DefaultPath returns the default config file path: ~/.config/claude-statusline/config.toml.
 func DefaultPath() string {
 	home, err := os.UserHomeDir()
 	if err != nil {
 		return ""
 	}
+
 	return filepath.Join(home, ".config", "claude-statusline", "config.toml")
 }
 
 // ResolveStyle resolves palette references in a style string.
-// If s starts with "palette:", the key after the prefix is looked up in
+// If styleStr starts with "palette:", the key after the prefix is looked up in
 // the active palette. If found, the palette value is returned.
-// Otherwise s is returned unchanged.
-func (c Config) ResolveStyle(s string) string {
-	if !strings.HasPrefix(s, "palette:") {
-		return s
+// Otherwise styleStr is returned unchanged.
+func (c Config) ResolveStyle(styleStr string) string {
+	key, found := strings.CutPrefix(styleStr, "palette:")
+	if !found {
+		return styleStr
 	}
 
-	key := s[len("palette:"):]
-
-	palette, ok := c.Palettes[c.Palette]
-	if !ok {
-		return s
+	palette, paletteExists := c.Palettes[c.Palette]
+	if !paletteExists {
+		return styleStr
 	}
 
-	value, ok := palette[key]
-	if !ok {
-		return s
+	value, valueExists := palette[key]
+	if !valueExists {
+		return styleStr
 	}
 
 	return value

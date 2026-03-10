@@ -10,13 +10,18 @@ import (
 
 // DirectoryModule renders the current working directory with tilde substitution and truncation.
 type DirectoryModule struct {
-	// homeDir overrides the home directory for testing. If empty, os.UserHomeDir() is used.
 	homeDir string
 }
 
 // NewDirectoryModule creates a DirectoryModule that uses the real home directory.
 func NewDirectoryModule() DirectoryModule {
 	home, _ := os.UserHomeDir()
+
+	return DirectoryModule{homeDir: home}
+}
+
+// NewDirectoryModuleWithHome creates a DirectoryModule with a custom home directory for testing.
+func NewDirectoryModuleWithHome(home string) DirectoryModule {
 	return DirectoryModule{homeDir: home}
 }
 
@@ -33,7 +38,7 @@ func (m DirectoryModule) Render(data input.Data, cfg config.Config) (string, err
 		home, _ = os.UserHomeDir()
 	}
 
-	// Tilde substitution
+	// Tilde substitution.
 	dir := cwd
 	if home != "" {
 		if dir == home {
@@ -43,7 +48,6 @@ func (m DirectoryModule) Render(data input.Data, cfg config.Config) (string, err
 		}
 	}
 
-	// Truncation
 	dir = truncatePath(dir, cfg.Directory.TruncationLength)
 
 	templateData := struct{ Dir string }{Dir: dir}
@@ -56,49 +60,47 @@ func (m DirectoryModule) Render(data input.Data, cfg config.Config) (string, err
 	return wrapStyle(result, cfg.Directory.Style, cfg), nil
 }
 
-// truncatePath keeps the last n path segments fully and abbreviates earlier ones
+// truncatePath keeps the last maxSegments path segments fully and abbreviates earlier ones
 // to their first character. The leading "/" or "~/" prefix is preserved.
-func truncatePath(path string, n int) string {
-	if n <= 0 {
+func truncatePath(path string, maxSegments int) string {
+	if maxSegments <= 0 {
 		return path
 	}
 
-	// Determine prefix and segments
-	var prefix string
-	var segmentStr string
-
-	if strings.HasPrefix(path, "~/") {
-		prefix = "~/"
-		segmentStr = path[2:]
-	} else if path == "~" {
-		return "~"
-	} else if strings.HasPrefix(path, "/") {
-		prefix = "/"
-		segmentStr = path[1:]
-	} else {
-		prefix = ""
-		segmentStr = path
-	}
-
+	prefix, segmentStr := splitPathPrefix(path)
 	if segmentStr == "" {
 		return prefix
 	}
 
 	segments := strings.Split(segmentStr, "/")
 
-	if len(segments) <= n {
+	if len(segments) <= maxSegments {
 		return path
 	}
 
-	// Abbreviate segments before the last n
-	cutoff := len(segments) - n
-	for i := 0; i < cutoff; i++ {
+	cutoff := len(segments) - maxSegments
+	for i := range cutoff {
 		if len(segments[i]) > 0 {
-			// Keep only the first character (first rune)
-			r := []rune(segments[i])
-			segments[i] = string(r[0])
+			runes := []rune(segments[i])
+			segments[i] = string(runes[0])
 		}
 	}
 
 	return prefix + strings.Join(segments, "/")
+}
+
+func splitPathPrefix(path string) (string, string) {
+	if strings.HasPrefix(path, "~/") {
+		return "~/", path[2:]
+	}
+
+	if path == "~" {
+		return "~", ""
+	}
+
+	if strings.HasPrefix(path, "/") {
+		return "/", path[1:]
+	}
+
+	return "", path
 }

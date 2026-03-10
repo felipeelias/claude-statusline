@@ -1,16 +1,17 @@
-package modules
+package modules_test
 
 import (
 	"testing"
 
 	"github.com/felipeelias/claude-statusline/internal/config"
 	"github.com/felipeelias/claude-statusline/internal/input"
+	"github.com/felipeelias/claude-statusline/internal/modules"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
 func TestModelModule_Name(t *testing.T) {
-	m := ModelModule{}
+	m := modules.ModelModule{}
 	assert.Equal(t, "model", m.Name())
 }
 
@@ -25,9 +26,8 @@ func TestModelModule_Render(t *testing.T) {
 			},
 		}
 
-		result, err := ModelModule{}.Render(data, cfg)
+		result, err := modules.ModelModule{}.Render(data, cfg)
 		require.NoError(t, err)
-		// Default style is "bold", which is ANSI code 1
 		assert.Contains(t, result, "Claude Opus 4")
 		assert.Contains(t, result, "\033[1m")
 		assert.Contains(t, result, "\033[0m")
@@ -41,9 +41,9 @@ func TestModelModule_Render(t *testing.T) {
 			},
 		}
 
-		result, err := ModelModule{}.Render(data, cfg)
+		result, err := modules.ModelModule{}.Render(data, cfg)
 		require.NoError(t, err)
-		assert.Equal(t, "", result)
+		assert.Empty(t, result)
 	})
 
 	t.Run("custom format template", func(t *testing.T) {
@@ -54,7 +54,7 @@ func TestModelModule_Render(t *testing.T) {
 			Model: input.Model{DisplayName: "Sonnet"},
 		}
 
-		result, err := ModelModule{}.Render(data, customCfg)
+		result, err := modules.ModelModule{}.Render(data, customCfg)
 		require.NoError(t, err)
 		assert.Contains(t, result, "model: Sonnet")
 	})

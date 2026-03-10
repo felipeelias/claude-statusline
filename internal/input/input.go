@@ -45,10 +45,13 @@ type Data struct {
 }
 
 // Parse decodes JSON from the given reader into a Data struct.
-func Parse(r io.Reader) (Data, error) {
+func Parse(reader io.Reader) (Data, error) {
 	var data Data
-	if err := json.NewDecoder(r).Decode(&data); err != nil {
+
+	err := json.NewDecoder(reader).Decode(&data)
+	if err != nil {
 		return Data{}, err
 	}
+
 	return data, nil
 }

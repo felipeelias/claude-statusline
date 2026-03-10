@@ -1,4 +1,4 @@
-package main
+package main_test
 
 import (
 	"os"
@@ -12,10 +12,9 @@ import (
 )
 
 func TestIntegration(t *testing.T) {
-	// Build binary to temp location
 	tmpDir := t.TempDir()
 	binary := filepath.Join(tmpDir, "claude-statusline")
-	build := exec.Command("go", "build", "-o", binary, ".")
+	build := exec.CommandContext(t.Context(), "go", "build", "-o", binary, ".")
 	build.Stderr = os.Stderr
 	require.NoError(t, build.Run())
 
@@ -26,7 +25,7 @@ func TestIntegration(t *testing.T) {
 		"context_window": {"used_percentage": 42.5}
 	}`
 
-	cmd := exec.Command(binary)
+	cmd := exec.CommandContext(t.Context(), binary)
 	cmd.Stdin = strings.NewReader(jsonInput)
 	out, err := cmd.Output()
 	require.NoError(t, err)
@@ -42,14 +41,13 @@ func TestIntegration(t *testing.T) {
 func TestIntegrationEmptyJSON(t *testing.T) {
 	tmpDir := t.TempDir()
 	binary := filepath.Join(tmpDir, "claude-statusline")
-	build := exec.Command("go", "build", "-o", binary, ".")
+	build := exec.CommandContext(t.Context(), "go", "build", "-o", binary, ".")
 	build.Stderr = os.Stderr
 	require.NoError(t, build.Run())
 
-	cmd := exec.Command(binary)
+	cmd := exec.CommandContext(t.Context(), binary)
 	cmd.Stdin = strings.NewReader("{}")
 	out, err := cmd.Output()
 	require.NoError(t, err)
-	// Should not crash on empty JSON
 	assert.NotNil(t, out)
 }

@@ -7,6 +7,8 @@ import (
 	"github.com/felipeelias/claude-statusline/internal/input"
 )
 
+const pctMax = 100
+
 // ContextModule renders the context window usage with a progress bar.
 type ContextModule struct{}
 
@@ -16,13 +18,7 @@ func (ContextModule) Render(data input.Data, cfg config.Config) (string, error) 
 	pct := data.ContextWindow.UsedPercentage
 
 	barWidth := cfg.Context.BarWidth
-	filled := int(pct / 100 * float64(barWidth))
-	if filled > barWidth {
-		filled = barWidth
-	}
-	if filled < 0 {
-		filled = 0
-	}
+	filled := min(max(int(pct/pctMax*float64(barWidth)), 0), barWidth)
 	empty := barWidth - filled
 
 	bar := strings.Repeat(cfg.Context.BarFill, filled) + strings.Repeat(cfg.Context.BarEmpty, empty)

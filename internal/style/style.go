@@ -6,22 +6,46 @@ import (
 	"strings"
 )
 
+const (
+	ansiBlack   = 30
+	ansiRed     = 31
+	ansiGreen   = 32
+	ansiYellow  = 33
+	ansiBlue    = 34
+	ansiMagenta = 35
+	ansiCyan    = 36
+	ansiWhite   = 37
+
+	ansiBold      = 1
+	ansiDim       = 2
+	ansiItalic    = 3
+	ansiUnderline = 4
+
+	ansiFgExtended   = 38
+	ansiBgExtended   = 48
+	ansiFgToBgOffset = 10
+
+	hexColorLen = 7
+	hexBase     = 16
+	hexBitSize  = 8
+)
+
 var namedColors = map[string]int{
-	"black":   30,
-	"red":     31,
-	"green":   32,
-	"yellow":  33,
-	"blue":    34,
-	"magenta": 35,
-	"cyan":    36,
-	"white":   37,
+	"black":   ansiBlack,
+	"red":     ansiRed,
+	"green":   ansiGreen,
+	"yellow":  ansiYellow,
+	"blue":    ansiBlue,
+	"magenta": ansiMagenta,
+	"cyan":    ansiCyan,
+	"white":   ansiWhite,
 }
 
 var attributes = map[string]int{
-	"bold":      1,
-	"dim":       2,
-	"italic":    3,
-	"underline": 4,
+	"bold":      ansiBold,
+	"dim":       ansiDim,
+	"italic":    ansiItalic,
+	"underline": ansiUnderline,
 }
 
 // Style holds parsed ANSI codes and can wrap text with them.
@@ -30,18 +54,17 @@ type Style struct {
 }
 
 // Parse parses a starship-like style string into a Style.
-func Parse(s string) Style {
-	s = strings.TrimSpace(s)
-	if s == "" {
+func Parse(spec string) Style {
+	spec = strings.TrimSpace(spec)
+	if spec == "" {
 		return Style{}
 	}
 
 	var codes []string
-	tokens := strings.Fields(s)
 
-	for _, token := range tokens {
-		if c, ok := parseToken(token); ok {
-			codes = append(codes, c...)
+	for token := range strings.FieldsSeq(spec) {
+		if parsed, ok := parseToken(token); ok {
+			codes = append(codes, parsed...)
 		}
 	}
 
@@ -49,30 +72,24 @@ func Parse(s string) Style {
 }
 
 func parseToken(token string) ([]string, bool) {
-	// Check attributes (bold, dim, italic, underline)
 	if code, ok := attributes[token]; ok {
 		return []string{strconv.Itoa(code)}, true
 	}
 
-	// Check bare named colors (red, green, etc.)
 	if code, ok := namedColors[token]; ok {
 		return []string{strconv.Itoa(code)}, true
 	}
 
-	// Check fg: prefix
-	if strings.HasPrefix(token, "fg:") {
-		value := token[3:]
+	if value, found := strings.CutPrefix(token, "fg:"); found {
 		return parseFg(value)
 	}
 
-	// Check bg: prefix
-	if strings.HasPrefix(token, "bg:") {
-		value := token[3:]
+	if value, found := strings.CutPrefix(token, "bg:"); found {
 		return parseBg(value)
 	}
 
-	// Check 256-color (bare number)
-	if n, err := strconv.Atoi(token); err == nil && n >= 0 && n <= 255 {
+	n, err := strconv.Atoi(token)
+	if err == nil && n >= 0 && n <= 255 {
 		return []string{fmt.Sprintf("38;5;%d", n)}, true
 	}
 
@@ -80,48 +97,50 @@ func parseToken(token string) ([]string, bool) {
 }
 
 func parseFg(value string) ([]string, bool) {
-	// fg:#RRGGBB
 	if strings.HasPrefix(value, "#") {
-		codes, ok := parseHexColor(value, 38)
-		return codes, ok
+		return parseHexColor(value, ansiFgExtended)
 	}
-	// fg:red (named)
+
 	if code, ok := namedColors[value]; ok {
 		return []string{strconv.Itoa(code)}, true
 	}
+
 	return nil, false
 }
 
 func parseBg(value string) ([]string, bool) {
-	// bg:#RRGGBB
 	if strings.HasPrefix(value, "#") {
-		codes, ok := parseHexColor(value, 48)
-		return codes, ok
+		return parseHexColor(value, ansiBgExtended)
 	}
-	// bg:red (named, fg code + 10)
+
 	if code, ok := namedColors[value]; ok {
-		return []string{strconv.Itoa(code + 10)}, true
+		return []string{strconv.Itoa(code + ansiFgToBgOffset)}, true
 	}
+
 	return nil, false
 }
 
 func parseHexColor(hex string, base int) ([]string, bool) {
-	if len(hex) != 7 || hex[0] != '#' {
+	if len(hex) != hexColorLen || hex[0] != '#' {
 		return nil, false
 	}
-	r, err := strconv.ParseUint(hex[1:3], 16, 8)
+
+	red, err := strconv.ParseUint(hex[1:3], hexBase, hexBitSize)
 	if err != nil {
 		return nil, false
 	}
-	g, err := strconv.ParseUint(hex[3:5], 16, 8)
+
+	green, err := strconv.ParseUint(hex[3:5], hexBase, hexBitSize)
 	if err != nil {
 		return nil, false
 	}
-	b, err := strconv.ParseUint(hex[5:7], 16, 8)
+
+	blue, err := strconv.ParseUint(hex[5:7], hexBase, hexBitSize)
 	if err != nil {
 		return nil, false
 	}
-	return []string{fmt.Sprintf("%d;2;%d;%d;%d", base, r, g, b)}, true
+
+	return []string{fmt.Sprintf("%d;2;%d;%d;%d", base, red, green, blue)}, true
 }
 
 // Wrap wraps text with ANSI escape codes. If no codes are set, returns text unchanged.
@@ -129,5 +148,6 @@ func (s Style) Wrap(text string) string {
 	if len(s.codes) == 0 {
 		return text
 	}
+
 	return fmt.Sprintf("\033[%sm%s\033[0m", strings.Join(s.codes, ";"), text)
 }

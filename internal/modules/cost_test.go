@@ -1,16 +1,17 @@
-package modules
+package modules_test
 
 import (
 	"testing"
 
 	"github.com/felipeelias/claude-statusline/internal/config"
 	"github.com/felipeelias/claude-statusline/internal/input"
+	"github.com/felipeelias/claude-statusline/internal/modules"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
 func TestCostModule_Name(t *testing.T) {
-	m := CostModule{}
+	m := modules.CostModule{}
 	assert.Equal(t, "cost", m.Name())
 }
 
@@ -22,10 +23,9 @@ func TestCostModule_Render(t *testing.T) {
 			Cost: input.Cost{TotalCostUSD: 0.42},
 		}
 
-		result, err := CostModule{}.Render(data, cfg)
+		result, err := modules.CostModule{}.Render(data, cfg)
 		require.NoError(t, err)
 		assert.Contains(t, result, "$0.42")
-		// Default style is palette:cost_ok -> green -> ANSI 32
 		assert.Contains(t, result, "\033[32m")
 	})
 
@@ -34,7 +34,7 @@ func TestCostModule_Render(t *testing.T) {
 			Cost: input.Cost{TotalCostUSD: 0},
 		}
 
-		result, err := CostModule{}.Render(data, cfg)
+		result, err := modules.CostModule{}.Render(data, cfg)
 		require.NoError(t, err)
 		assert.Contains(t, result, "$0.00")
 	})
@@ -44,10 +44,9 @@ func TestCostModule_Render(t *testing.T) {
 			Cost: input.Cost{TotalCostUSD: 2.50},
 		}
 
-		result, err := CostModule{}.Render(data, cfg)
+		result, err := modules.CostModule{}.Render(data, cfg)
 		require.NoError(t, err)
 		assert.Contains(t, result, "$2.50")
-		// palette:cost_warn -> yellow -> ANSI 33
 		assert.Contains(t, result, "\033[33m")
 	})
 
@@ -56,10 +55,9 @@ func TestCostModule_Render(t *testing.T) {
 			Cost: input.Cost{TotalCostUSD: 10.00},
 		}
 
-		result, err := CostModule{}.Render(data, cfg)
+		result, err := modules.CostModule{}.Render(data, cfg)
 		require.NoError(t, err)
 		assert.Contains(t, result, "$10.00")
-		// palette:cost_high -> red -> ANSI 31
 		assert.Contains(t, result, "\033[31m")
 	})
 
@@ -68,9 +66,8 @@ func TestCostModule_Render(t *testing.T) {
 			Cost: input.Cost{TotalCostUSD: 0.50},
 		}
 
-		result, err := CostModule{}.Render(data, cfg)
+		result, err := modules.CostModule{}.Render(data, cfg)
 		require.NoError(t, err)
-		// palette:cost_ok -> green -> ANSI 32
 		assert.Contains(t, result, "\033[32m")
 	})
 }

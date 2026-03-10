@@ -27,7 +27,7 @@ func TestDefault(t *testing.T) {
 func TestLoadFromFile(t *testing.T) {
 	dir := t.TempDir()
 	path := filepath.Join(dir, "config.toml")
-	os.WriteFile(path, []byte(`
+	require.NoError(t, os.WriteFile(path, []byte(`
 format = "$model | $cost"
 palette = "custom"
 
@@ -39,7 +39,7 @@ format = "M: {{.DisplayName}}"
 
 [git_branch]
 disabled = false
-`), 0o644)
+`), 0o644))
 
 	cfg, err := config.Load(path)
 	require.NoError(t, err)

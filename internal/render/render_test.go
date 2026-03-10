@@ -1,10 +1,11 @@
-package render
+package render_test
 
 import (
 	"testing"
 
 	"github.com/felipeelias/claude-statusline/internal/config"
 	"github.com/felipeelias/claude-statusline/internal/input"
+	"github.com/felipeelias/claude-statusline/internal/render"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -17,7 +18,7 @@ func TestRenderPlain(t *testing.T) {
 		Cost:          input.Cost{TotalCostUSD: 0.42},
 		ContextWindow: input.ContextWindow{UsedPercentage: 42.5},
 	}
-	result, err := Render(cfg, data)
+	result, err := render.Render(cfg, data)
 	require.NoError(t, err)
 	assert.Contains(t, result, "Claude Opus 4")
 	assert.Contains(t, result, "/tmp/test")
@@ -33,7 +34,7 @@ func TestRenderDisabledModule(t *testing.T) {
 		Model: input.Model{DisplayName: "Opus"},
 		Cost:  input.Cost{TotalCostUSD: 1.0},
 	}
-	result, err := Render(cfg, data)
+	result, err := render.Render(cfg, data)
 	require.NoError(t, err)
 	assert.Contains(t, result, "Opus")
 	assert.Contains(t, result, "$1.00")
@@ -42,7 +43,7 @@ func TestRenderDisabledModule(t *testing.T) {
 func TestRenderStyledText(t *testing.T) {
 	cfg := config.Default()
 	cfg.Format = "[hello](bold green)"
-	result, err := Render(cfg, input.Data{})
+	result, err := render.Render(cfg, input.Data{})
 	require.NoError(t, err)
 	assert.Contains(t, result, "\033[1;32m")
 	assert.Contains(t, result, "hello")
@@ -51,9 +52,9 @@ func TestRenderStyledText(t *testing.T) {
 func TestRenderUnknownModule(t *testing.T) {
 	cfg := config.Default()
 	cfg.Format = "$unknown_module"
-	result, err := Render(cfg, input.Data{})
+	result, err := render.Render(cfg, input.Data{})
 	require.NoError(t, err)
-	assert.Equal(t, "", result)
+	assert.Empty(t, result)
 }
 
 func TestRenderPowerline(t *testing.T) {
@@ -63,7 +64,7 @@ func TestRenderPowerline(t *testing.T) {
 		Model: input.Model{DisplayName: "Opus"},
 		Cwd:   "/tmp",
 	}
-	result, err := Render(cfg, data)
+	result, err := render.Render(cfg, data)
 	require.NoError(t, err)
 	assert.Contains(t, result, "Opus")
 	assert.Contains(t, result, "/tmp")
@@ -76,7 +77,7 @@ func TestRenderLiteralText(t *testing.T) {
 	data := input.Data{
 		Model: input.Model{DisplayName: "Opus"},
 	}
-	result, err := Render(cfg, data)
+	result, err := render.Render(cfg, data)
 	require.NoError(t, err)
 	assert.Contains(t, result, "<<<")
 	assert.Contains(t, result, ">>>")
@@ -86,17 +87,16 @@ func TestRenderLiteralText(t *testing.T) {
 func TestRenderEmptyFormat(t *testing.T) {
 	cfg := config.Default()
 	cfg.Format = ""
-	result, err := Render(cfg, input.Data{})
+	result, err := render.Render(cfg, input.Data{})
 	require.NoError(t, err)
-	assert.Equal(t, "", result)
+	assert.Empty(t, result)
 }
 
 func TestRenderPaletteStyle(t *testing.T) {
 	cfg := config.Default()
 	cfg.Format = "[text](palette:accent)"
-	result, err := Render(cfg, input.Data{})
+	result, err := render.Render(cfg, input.Data{})
 	require.NoError(t, err)
-	// palette:accent resolves to "cyan" → \033[36m
 	assert.Contains(t, result, "\033[36m")
 	assert.Contains(t, result, "text")
 }
