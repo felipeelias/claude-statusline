@@ -83,7 +83,7 @@ Preview all presets: `claude-statusline themes`
 |--------|-------------|-----------|
 | `default` | Flat with `\|` pipes, standard colors | No |
 | `minimal` | Clean spacing, no separators | No |
-| `pastel-powerline` | Pastel powerline arrows (purple/pink/peach/blue) | Yes |
+| `pastel-powerline` | Pastel powerline arrows (pink/peach/blue/teal) | Yes |
 | `tokyo-night` | Dark blues rounded powerline with gradient | Yes |
 | `gruvbox-rainbow` | Earthy rainbow powerline | Yes |
 | `catppuccin` | Catppuccin Mocha powerline | Yes |
@@ -131,7 +131,7 @@ Modules support a `style` field that accepts several formats:
 - **Named:** `red`, `green`, `cyan`, `bold`, `dim`, `italic`
 - **Hex:** `fg:#ff5500`, `bg:#333333`
 - **256-color:** `208`, `fg:208`, `bg:238`
-- **Combined:** `fg:#aaa bg:#333 bold`
+- **Combined:** `fg:#aabbcc bg:#333333 bold`
 
 ## License
 

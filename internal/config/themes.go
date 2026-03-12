@@ -135,7 +135,7 @@ func powerlineConfig(preset string, format string, segFg string, colors [5]strin
 
 // Pastel Powerline — based on Starship's Pastel Powerline preset.
 // Left half-circle cap, arrow transitions, arrow trailing.
-// Colors: purple → pink → peach → blue → dark blue.
+// Colors: pink → peach → light blue → teal → dark blue.
 func presetPastelPowerline() Config {
 	colors := [5]string{"#DA627D", "#FCA17D", "#86BBD8", "#06969A", "#33658A"}
 
