@@ -70,7 +70,7 @@ func TestContextModule_Render(t *testing.T) {
 		assert.Contains(t, result, "\033[33m")
 	})
 
-	t.Run("threshold above 70 uses 208 style", func(t *testing.T) {
+	t.Run("threshold above 50 still yellow at 75", func(t *testing.T) {
 		data := input.Data{
 			ContextWindow: input.ContextWindow{
 				UsedPercentage: 75.0,
@@ -79,7 +79,7 @@ func TestContextModule_Render(t *testing.T) {
 
 		result, err := modules.ContextModule{}.Render(data, cfg)
 		require.NoError(t, err)
-		assert.Contains(t, result, "\033[38;5;208m")
+		assert.Contains(t, result, "\033[33m")
 	})
 
 	t.Run("threshold above 90 uses high style", func(t *testing.T) {

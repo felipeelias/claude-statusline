@@ -18,6 +18,7 @@ linters:
         - G204
         - G304
         - G704
+        - G705
     tagliatelle:
       case:
         rules:

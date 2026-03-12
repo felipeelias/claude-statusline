@@ -25,11 +25,9 @@ func renderTemplate(name, format string, data any) (string, error) {
 	return buf.String(), nil
 }
 
-// wrapStyle resolves a style string via the config palette, parses it, and wraps text.
-func wrapStyle(text, styleStr string, cfg config.Config) string {
-	resolved := cfg.ResolveStyle(styleStr)
-
-	return style.Parse(resolved).Wrap(text)
+// wrapStyle parses a style string and wraps text with ANSI codes.
+func wrapStyle(text, styleStr string) string {
+	return style.Parse(styleStr).Wrap(text)
 }
 
 // resolveThresholdStyle evaluates thresholds in order. The last threshold whose

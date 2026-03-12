@@ -62,9 +62,8 @@ func renderMatch(
 	if loc[2] != -1 && loc[4] != -1 {
 		text := format[loc[2]:loc[3]]
 		styleStr := format[loc[4]:loc[5]]
-		resolved := cfg.ResolveStyle(styleStr)
 
-		return style.Parse(resolved).Wrap(text), nil
+		return style.Parse(styleStr).Wrap(text), nil
 	}
 
 	if loc[6] != -1 {

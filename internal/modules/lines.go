@@ -20,8 +20,8 @@ func (LinesChangedModule) Render(data input.Data, cfg config.Config) (string, er
 		return "", nil
 	}
 
-	addedStr := wrapStyle(fmt.Sprintf("+%d", added), cfg.LinesChanged.AddedStyle, cfg)
-	removedStr := wrapStyle(fmt.Sprintf("-%d", removed), cfg.LinesChanged.RemovedStyle, cfg)
+	addedStr := wrapStyle(fmt.Sprintf("+%d", added), cfg.LinesChanged.AddedStyle)
+	removedStr := wrapStyle(fmt.Sprintf("-%d", removed), cfg.LinesChanged.RemovedStyle)
 
 	return addedStr + " " + removedStr, nil
 }

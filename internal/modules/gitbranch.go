@@ -34,7 +34,7 @@ func (GitBranchModule) Render(data input.Data, cfg config.Config) (string, error
 		return "", err
 	}
 
-	return wrapStyle(result, cfg.GitBranch.Style, cfg), nil
+	return wrapStyle(result, cfg.GitBranch.Style), nil
 }
 
 // gitBranch runs git rev-parse to get the current branch name.

@@ -38,5 +38,5 @@ func (ContextModule) Render(data input.Data, cfg config.Config) (string, error) 
 
 	winningStyle := resolveThresholdStyle(pct, cfg.Context.Thresholds, cfg.Context.Style)
 
-	return wrapStyle(result, winningStyle, cfg), nil
+	return wrapStyle(result, winningStyle), nil
 }
