@@ -38,16 +38,12 @@ func ApplyPreset(name string) (Config, bool) {
 }
 
 var builtinPresets = map[string]func() Config{
-	"default":          presetDefault,
+	"default":          Default,
 	"minimal":          presetMinimal,
 	"pastel-powerline": presetPastelPowerline,
 	"tokyo-night":      presetTokyoNight,
 	"gruvbox-rainbow":  presetGruvboxRainbow,
 	"catppuccin":       presetCatppuccin,
-}
-
-func presetDefault() Config {
-	return Default()
 }
 
 // Minimal — clean spacing, no separators, no icons, no background colors.
@@ -118,16 +114,16 @@ func powerlineConfig(preset string, format string, segFg string, colors [5]strin
 			Format: ` ${{printf "%.2f" .TotalCostUSD}} `,
 			Style:  segStyle(segFg, colors[3]),
 			Thresholds: []Threshold{
-				{Above: 1.0, Style: "fg:" + thresholds.warn + " bg:" + colors[3]},
-				{Above: costWarnThreshold, Style: "fg:" + thresholds.high + " bg:" + colors[3]},
+				{Above: 1.0, Style: segStyle(thresholds.warn, colors[3])},
+				{Above: costWarnThreshold, Style: segStyle(thresholds.high, colors[3])},
 			},
 		},
 		Context: ContextConfig{
 			Format: ` {{.Bar}} {{printf "%.0f" .UsedPct}}% `, Style: segStyle(segFg, colors[4]),
-			BarWidth: defaultBarWidth, BarFill: "\u2588", BarEmpty: "\u2591",
+			BarWidth: defaultBarWidth, BarFill: defaultBarFill, BarEmpty: defaultBarEmpty,
 			Thresholds: []Threshold{
-				{Above: ctxWarnThreshold, Style: "fg:" + thresholds.warn + " bg:" + colors[4]},
-				{Above: ctxHighThreshold, Style: "fg:" + thresholds.high + " bg:" + colors[4]},
+				{Above: ctxWarnThreshold, Style: segStyle(thresholds.warn, colors[4])},
+				{Above: ctxHighThreshold, Style: segStyle(thresholds.high, colors[4])},
 			},
 		},
 		SessionTimer: SessionTimerConfig{Format: " {{.Elapsed}} ", Style: "dim", Disabled: true},

@@ -86,6 +86,8 @@ type LinesChangedConfig struct {
 const (
 	defaultTruncationLength = 3
 	defaultBarWidth         = 5
+	defaultBarFill          = "\u2588" // █
+	defaultBarEmpty         = "\u2591" // ░
 	costWarnThreshold       = 5.0
 	ctxWarnThreshold        = 50
 	ctxHighThreshold        = 90
@@ -117,15 +119,15 @@ func Default() Config {
 			Format:   `{{.Bar}} {{printf "%.0f" .UsedPct}}%`,
 			Style:    "green",
 			BarWidth: defaultBarWidth,
-			BarFill:  "\u2588",
-			BarEmpty: "\u2591",
+			BarFill:  defaultBarFill,
+			BarEmpty: defaultBarEmpty,
 			Thresholds: []Threshold{
 				{Above: ctxWarnThreshold, Style: "yellow"},
 				{Above: ctxHighThreshold, Style: "red"},
 			},
 		},
 		GitBranch: GitBranchConfig{
-			Format: "\ue0a0 {{.Branch}}{{if .InWorktree}} \uf0e8{{end}}",
+			Format: iconBranch + " {{.Branch}}{{if .InWorktree}} " + iconWorktree + "{{end}}",
 			Style:  "cyan",
 		},
 		SessionTimer: SessionTimerConfig{
@@ -155,7 +157,7 @@ type presetHeader struct {
 // Loading is two-pass: first the preset field is read to select the base
 // config, then the full file is decoded on top so user overrides layer cleanly.
 func Load(path string) (Config, error) {
-	_, err := os.Stat(path)
+	content, err := os.ReadFile(path)
 	if errors.Is(err, os.ErrNotExist) {
 		return Default(), nil
 	}
@@ -163,10 +165,12 @@ func Load(path string) (Config, error) {
 		return Config{}, err
 	}
 
+	raw := string(content)
+
 	// Pass 1: read preset field.
 	var header presetHeader
 
-	_, err = toml.DecodeFile(path, &header)
+	_, err = toml.Decode(raw, &header)
 	if err != nil {
 		return Config{}, err
 	}
@@ -174,7 +178,7 @@ func Load(path string) (Config, error) {
 	// Pass 2: start from preset base, decode user overrides on top.
 	cfg, _ := ApplyPreset(header.Preset)
 
-	_, err = toml.DecodeFile(path, &cfg)
+	_, err = toml.Decode(raw, &cfg)
 	if err != nil {
 		return Config{}, err
 	}
