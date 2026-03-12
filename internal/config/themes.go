@@ -4,15 +4,19 @@ import "sort"
 
 const (
 	// Powerline / Nerd Font separator glyphs.
-	plRight    = "\ue0b0" // Powerline right arrow
-	plRoundedL = "\ue0b6" // Rounded left (open)
-	plRoundedR = "\ue0b4" // Rounded right (close)
+	plRight    = "\ue0b0" // Powerline right arrow:
+	plLeftCap  = "\ue0b6" // Powerline left half-circle:
+	plRightCap = "\ue0b4" // Powerline right half-circle:
+	// Git branch icon.
+	iconBranch = "\ue0a0"
+	// Worktree icon.
+	iconWorktree = "\uf0e8"
 )
 
-// ThemeNames returns a sorted list of built-in theme names.
-func ThemeNames() []string {
-	names := make([]string, 0, len(builtinThemes))
-	for name := range builtinThemes {
+// PresetNames returns a sorted list of built-in preset names.
+func PresetNames() []string {
+	names := make([]string, 0, len(builtinPresets))
+	for name := range builtinPresets {
 		names = append(names, name)
 	}
 
@@ -21,11 +25,11 @@ func ThemeNames() []string {
 	return names
 }
 
-// ApplyTheme returns a Config with the named theme applied.
-// If the theme is not found, it falls back to Default().
-// The second return value indicates whether the theme was found.
-func ApplyTheme(name string) (Config, bool) {
-	fn, ok := builtinThemes[name]
+// ApplyPreset returns a Config for the named preset.
+// If the preset is not found, it falls back to Default().
+// The second return value indicates whether the preset was found.
+func ApplyPreset(name string) (Config, bool) {
+	fn, ok := builtinPresets[name]
 	if !ok {
 		return Default(), false
 	}
@@ -33,145 +37,166 @@ func ApplyTheme(name string) (Config, bool) {
 	return fn(), true
 }
 
-// builtinThemes maps theme names to constructor functions.
-var builtinThemes = map[string]func() Config{
-	"default":   themeDefault,
-	"powerline": themePowerline,
-	"rounded":   themeRounded,
-	"minimal":   themeMinimal,
+var builtinPresets = map[string]func() Config{
+	"default":          presetDefault,
+	"minimal":          presetMinimal,
+	"pastel-powerline": presetPastelPowerline,
+	"tokyo-night":      presetTokyoNight,
+	"gruvbox-rainbow":  presetGruvboxRainbow,
+	"catppuccin":       presetCatppuccin,
 }
 
-func themeDefault() Config {
+func presetDefault() Config {
 	return Default()
 }
 
-// segmentModules returns module configs shared by powerline and rounded themes.
-func segmentModules() (
-	ModelConfig, DirectoryConfig, CostConfig, ContextConfig, GitBranchConfig,
-	SessionTimerConfig, LinesChangedConfig,
-) {
-	model := ModelConfig{
-		Format: " {{.DisplayName}} ",
-		Style:  "fg:palette:seg_fg bg:palette:model_bg bold",
-	}
-
-	directory := DirectoryConfig{
-		Format:           " {{.Dir}} ",
-		Style:            "fg:palette:seg_fg bg:palette:dir_bg",
-		TruncationLength: defaultTruncationLength,
-	}
-
-	cost := CostConfig{
-		Format: ` ${{printf "%.2f" .TotalCostUSD}} `,
-		Style:  "fg:palette:cost_ok bg:palette:cost_bg",
-		Thresholds: []Threshold{
-			{Above: 1.0, Style: "fg:palette:cost_warn bg:palette:cost_bg"},
-			{Above: costWarnThreshold, Style: "fg:palette:cost_high bg:palette:cost_bg"},
-		},
-	}
-
-	context := ContextConfig{
-		Format:   ` {{.Bar}} {{printf "%.0f" .UsedPct}}% `,
-		Style:    "fg:palette:ctx_ok bg:palette:ctx_bg",
-		BarWidth: defaultBarWidth,
-		BarFill:  "\u2588",
-		BarEmpty: "\u2591",
-		Thresholds: []Threshold{
-			{Above: ctxWarnThreshold, Style: "fg:palette:ctx_warn bg:palette:ctx_bg"},
-			{Above: ctxMedThreshold, Style: "fg:208 bg:palette:ctx_bg"},
-			{Above: ctxHighThreshold, Style: "fg:palette:ctx_high bg:palette:ctx_bg"},
-		},
-	}
-
-	gitBranch := GitBranchConfig{
-		Format: " \ue0a0 {{.Branch}}{{if .InWorktree}} \uf0e8{{end}} ",
-		Style:  "fg:palette:seg_fg bg:palette:git_bg",
-	}
-
-	sessionTimer := SessionTimerConfig{
-		Format:   " {{.Elapsed}} ",
-		Style:    "dim",
-		Disabled: true,
-	}
-
-	linesChanged := LinesChangedConfig{
-		Format:       " +{{.Added}} -{{.Removed}} ",
-		AddedStyle:   "green",
-		RemovedStyle: "red",
-		Disabled:     true,
-	}
-
-	return model, directory, cost, context, gitBranch, sessionTimer, linesChanged
-}
-
-func themePowerline() Config {
-	model, directory, cost, context, gitBranch, sessionTimer, linesChanged := segmentModules()
-
-	return Config{
-		Theme:   "powerline",
-		Palette: "default",
-		Format: "[" + plRight + "](fg:palette:dir_bg)" +
-			"$directory" +
-			"[" + plRight + "](fg:palette:dir_bg bg:palette:git_bg)" +
-			"$git_branch" +
-			"[" + plRight + "](fg:palette:git_bg bg:palette:model_bg)" +
-			"$model" +
-			"[" + plRight + "](fg:palette:model_bg bg:palette:cost_bg)" +
-			"$cost" +
-			"[" + plRight + "](fg:palette:cost_bg bg:palette:ctx_bg)" +
-			"$context" +
-			"[" + plRight + "](fg:palette:ctx_bg)",
-		Palettes:     defaultPalettes(),
-		Model:        model,
-		Directory:    directory,
-		Cost:         cost,
-		Context:      context,
-		GitBranch:    gitBranch,
-		SessionTimer: sessionTimer,
-		LinesChanged: linesChanged,
-	}
-}
-
-func themeRounded() Config {
-	model, directory, cost, context, gitBranch, sessionTimer, linesChanged := segmentModules()
-
-	return Config{
-		Theme:   "rounded",
-		Palette: "default",
-		Format: "[" + plRoundedL + "](fg:palette:dir_bg)" +
-			"$directory" +
-			"[" + plRoundedR + "](fg:palette:dir_bg) " +
-			"[" + plRoundedL + "](fg:palette:git_bg)" +
-			"$git_branch" +
-			"[" + plRoundedR + "](fg:palette:git_bg) " +
-			"[" + plRoundedL + "](fg:palette:model_bg)" +
-			"$model" +
-			"[" + plRoundedR + "](fg:palette:model_bg) " +
-			"[" + plRoundedL + "](fg:palette:cost_bg)" +
-			"$cost" +
-			"[" + plRoundedR + "](fg:palette:cost_bg) " +
-			"[" + plRoundedL + "](fg:palette:ctx_bg)" +
-			"$context" +
-			"[" + plRoundedR + "](fg:palette:ctx_bg)",
-		Palettes:     defaultPalettes(),
-		Model:        model,
-		Directory:    directory,
-		Cost:         cost,
-		Context:      context,
-		GitBranch:    gitBranch,
-		SessionTimer: sessionTimer,
-		LinesChanged: linesChanged,
-	}
-}
-
-func themeMinimal() Config {
+// Minimal — clean spacing, no separators, no icons, no background colors.
+func presetMinimal() Config {
 	cfg := Default()
-	cfg.Theme = "minimal"
+	cfg.Preset = "minimal"
 	cfg.Format = "$directory  $git_branch  $model  $cost  $context"
-	cfg.Directory.Style = "dim"
+	cfg.Directory.Style = "blue"
 	cfg.GitBranch.Format = "{{.Branch}}"
-	cfg.GitBranch.Style = "dim"
+	cfg.GitBranch.Style = "cyan"
+	cfg.Model.Style = "bold"
+	cfg.Cost.Style = "green"
 	cfg.Context.Format = `{{printf "%.0f" .UsedPct}}%`
+	cfg.Context.Style = "green"
 
 	return cfg
+}
+
+type thresholdColors struct {
+	warn string
+	high string
+}
+
+// capsuleFormat builds a powerline format with a left half-circle cap,
+// right-arrow transitions, and the given trailing glyph.
+func capsuleFormat(colors [5]string, trailing string) string {
+	return "[" + plLeftCap + "](fg:" + colors[0] + ")" +
+		"$directory" +
+		"[" + plRight + "](fg:" + colors[0] + " bg:" + colors[1] + ")" +
+		"$git_branch" +
+		"[" + plRight + "](fg:" + colors[1] + " bg:" + colors[2] + ")" +
+		"$model" +
+		"[" + plRight + "](fg:" + colors[2] + " bg:" + colors[3] + ")" +
+		"$cost" +
+		"[" + plRight + "](fg:" + colors[3] + " bg:" + colors[4] + ")" +
+		"$context" +
+		"[" + trailing + " ](fg:" + colors[4] + ")"
+}
+
+// segStyle builds a style string with optional foreground and required background.
+// When segFg is empty, no fg is set (terminal default foreground).
+func segStyle(segFg string, bgColor string) string {
+	if segFg == "" {
+		return "bg:" + bgColor
+	}
+
+	return "fg:" + segFg + " bg:" + bgColor
+}
+
+// powerlineConfig builds a powerline-style Config with the given format and colors.
+// Pass segFg="" to use terminal default foreground (like Starship's Pastel Powerline).
+func powerlineConfig(preset string, format string, segFg string, colors [5]string, thresholds thresholdColors) Config {
+	return Config{
+		Preset: preset,
+		Format: format,
+		Directory: DirectoryConfig{
+			Format: " {{.Dir}} ", Style: segStyle(segFg, colors[0]),
+			TruncationLength: defaultTruncationLength,
+		},
+		GitBranch: GitBranchConfig{
+			Format: " " + iconBranch + " {{.Branch}}{{if .InWorktree}} " + iconWorktree + "{{end}} ",
+			Style:  segStyle(segFg, colors[1]),
+		},
+		Model: ModelConfig{
+			Format: " {{.DisplayName}} ", Style: segStyle(segFg, colors[2]) + " bold",
+		},
+		Cost: CostConfig{
+			Format: ` ${{printf "%.2f" .TotalCostUSD}} `,
+			Style:  segStyle(segFg, colors[3]),
+			Thresholds: []Threshold{
+				{Above: 1.0, Style: "fg:" + thresholds.warn + " bg:" + colors[3]},
+				{Above: costWarnThreshold, Style: "fg:" + thresholds.high + " bg:" + colors[3]},
+			},
+		},
+		Context: ContextConfig{
+			Format: ` {{.Bar}} {{printf "%.0f" .UsedPct}}% `, Style: segStyle(segFg, colors[4]),
+			BarWidth: defaultBarWidth, BarFill: "\u2588", BarEmpty: "\u2591",
+			Thresholds: []Threshold{
+				{Above: ctxWarnThreshold, Style: "fg:" + thresholds.warn + " bg:" + colors[4]},
+				{Above: ctxHighThreshold, Style: "fg:" + thresholds.high + " bg:" + colors[4]},
+			},
+		},
+		SessionTimer: SessionTimerConfig{Format: " {{.Elapsed}} ", Style: "dim", Disabled: true},
+		LinesChanged: LinesChangedConfig{
+			Format: " +{{.Added}} -{{.Removed}} ", AddedStyle: "green", RemovedStyle: "red", Disabled: true,
+		},
+	}
+}
+
+// Pastel Powerline — based on Starship's Pastel Powerline preset.
+// Left half-circle cap, arrow transitions, arrow trailing.
+// Colors: purple → pink → peach → blue → dark blue.
+func presetPastelPowerline() Config {
+	colors := [5]string{"#DA627D", "#FCA17D", "#86BBD8", "#06969A", "#33658A"}
+
+	return powerlineConfig("pastel-powerline",
+		capsuleFormat(colors, plRight),
+		"", colors,
+		thresholdColors{warn: "#f9e2af", high: "#f38ba8"},
+	)
+}
+
+// Tokyo Night — based on Starship's Tokyo Night preset.
+// Gradient ░▒▓ leading, all rounded half-circle transitions.
+// Colors: bright blue → dark blue-gray → darker → darkest → near-black.
+func presetTokyoNight() Config {
+	colors := [5]string{"#769ff0", "#394260", "#212736", "#1d2230", "#1a1b26"}
+	format := "[\u2591\u2592\u2593](fg:#a3aed2)" +
+		"[" + plRightCap + "](fg:#a3aed2 bg:" + colors[0] + ")" +
+		"$directory" +
+		"[" + plRightCap + "](fg:" + colors[0] + " bg:" + colors[1] + ")" +
+		"$git_branch" +
+		"[" + plRightCap + "](fg:" + colors[1] + " bg:" + colors[2] + ")" +
+		"$model" +
+		"[" + plRightCap + "](fg:" + colors[2] + " bg:" + colors[3] + ")" +
+		"$cost" +
+		"[" + plRightCap + "](fg:" + colors[3] + " bg:" + colors[4] + ")" +
+		"$context" +
+		"[" + plRightCap + " ](fg:" + colors[4] + ")"
+
+	return powerlineConfig("tokyo-night",
+		format,
+		"#e3e5e5", colors,
+		thresholdColors{warn: "#e0af68", high: "#f7768e"},
+	)
+}
+
+// Gruvbox Rainbow — based on Starship's Gruvbox Rainbow preset.
+// Left half-circle cap, arrow transitions, rounded half-circle trailing.
+// Colors: yellow → aqua → blue → gray → dark.
+func presetGruvboxRainbow() Config {
+	colors := [5]string{"#d79921", "#689d6a", "#458588", "#665c54", "#3c3836"}
+
+	return powerlineConfig("gruvbox-rainbow",
+		capsuleFormat(colors, plRightCap),
+		"#fbf1c7", colors,
+		thresholdColors{warn: "#fabd2f", high: "#fb4934"},
+	)
+}
+
+// Catppuccin — based on Starship's Catppuccin Powerline preset (Mocha).
+// Left half-circle cap, arrow transitions, rounded half-circle trailing.
+// Colors: peach → yellow → green → sapphire → lavender.
+func presetCatppuccin() Config {
+	colors := [5]string{"#fab387", "#f9e2af", "#a6e3a1", "#74c7ec", "#b4befe"}
+
+	return powerlineConfig("catppuccin",
+		capsuleFormat(colors, plRightCap),
+		"#11111b", colors,
+		thresholdColors{warn: "#f9e2af", high: "#f38ba8"},
+	)
 }

@@ -66,7 +66,7 @@ func TestInitCommand(t *testing.T) {
 	content, err := os.ReadFile(configPath)
 	require.NoError(t, err)
 	assert.Contains(t, string(content), "format =")
-	assert.Contains(t, string(content), `palette = "default"`)
+	assert.Contains(t, string(content), `preset = "default"`)
 }
 
 func TestInitCommandAlreadyExists(t *testing.T) {
@@ -105,16 +105,12 @@ func TestThemesCommand(t *testing.T) {
 	result := stdout.String()
 	assert.Contains(t, result, "current:")
 
-	// Theme sections
-	assert.Contains(t, result, "--- default ---")
-	assert.Contains(t, result, "--- powerline ---")
-	assert.Contains(t, result, "--- rounded ---")
-	assert.Contains(t, result, "--- minimal ---")
-
-	// Palette names within each section
+	// Preset names
 	assert.Contains(t, result, "default:")
+	assert.Contains(t, result, "minimal:")
+	assert.Contains(t, result, "pastel-powerline:")
 	assert.Contains(t, result, "tokyo-night:")
-	assert.Contains(t, result, "gruvbox:")
+	assert.Contains(t, result, "gruvbox-rainbow:")
 	assert.Contains(t, result, "catppuccin:")
 }
 

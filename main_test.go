@@ -89,9 +89,8 @@ func TestEndToEndInitCommand(t *testing.T) {
 
 	content, err := os.ReadFile(configPath)
 	require.NoError(t, err)
-	assert.Contains(t, string(content), `theme = "default"`)
+	assert.Contains(t, string(content), `preset = "default"`)
 	assert.Contains(t, string(content), "format =")
-	assert.Contains(t, string(content), `palette = "default"`)
 }
 
 func TestEndToEndTestCommand(t *testing.T) {
@@ -112,22 +111,19 @@ func TestEndToEndThemesCommand(t *testing.T) {
 
 	result := string(out)
 	assert.Contains(t, result, "current:")
-	assert.Contains(t, result, "--- default ---")
-	assert.Contains(t, result, "--- powerline ---")
-	assert.Contains(t, result, "--- rounded ---")
-	assert.Contains(t, result, "--- minimal ---")
 	assert.Contains(t, result, "default:")
+	assert.Contains(t, result, "minimal:")
+	assert.Contains(t, result, "pastel-powerline:")
 	assert.Contains(t, result, "tokyo-night:")
-	assert.Contains(t, result, "gruvbox:")
+	assert.Contains(t, result, "gruvbox-rainbow:")
 	assert.Contains(t, result, "catppuccin:")
 }
 
-func TestEndToEndWithThemeConfig(t *testing.T) {
+func TestEndToEndWithPresetConfig(t *testing.T) {
 	dir := t.TempDir()
 	configPath := filepath.Join(dir, "config.toml")
 	err := os.WriteFile(configPath, []byte(`
-theme = "powerline"
-palette = "catppuccin"
+preset = "catppuccin"
 `), 0o644)
 	require.NoError(t, err)
 

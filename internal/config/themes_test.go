@@ -7,64 +7,78 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestThemeNames(t *testing.T) {
-	names := config.ThemeNames()
-	assert.Equal(t, []string{"default", "minimal", "powerline", "rounded"}, names)
+func TestPresetNames(t *testing.T) {
+	names := config.PresetNames()
+	assert.Equal(t, []string{
+		"catppuccin", "default", "gruvbox-rainbow", "minimal",
+		"pastel-powerline", "tokyo-night",
+	}, names)
 }
 
-func TestApplyThemeDefault(t *testing.T) {
-	cfg, ok := config.ApplyTheme("default")
+func TestApplyPresetDefault(t *testing.T) {
+	cfg, ok := config.ApplyPreset("default")
 	assert.True(t, ok)
-	assert.Equal(t, "default", cfg.Theme)
+	assert.Equal(t, "default", cfg.Preset)
 	assert.Equal(t, config.Default().Format, cfg.Format)
 }
 
-func TestApplyThemePowerline(t *testing.T) {
-	cfg, ok := config.ApplyTheme("powerline")
+func TestApplyPresetMinimal(t *testing.T) {
+	cfg, ok := config.ApplyPreset("minimal")
 	assert.True(t, ok)
-	assert.Equal(t, "powerline", cfg.Theme)
-	assert.Contains(t, cfg.Format, "\ue0b0")
-	assert.Contains(t, cfg.Format, "$directory")
-	assert.Contains(t, cfg.Format, "$git_branch")
-	assert.Contains(t, cfg.Format, "$model")
-	assert.Contains(t, cfg.Format, "$cost")
-	assert.Contains(t, cfg.Format, "$context")
-	// Module formats should have padding
-	assert.Contains(t, cfg.Directory.Format, " ")
-	assert.Contains(t, cfg.Directory.Style, "bg:palette:dir_bg")
+	assert.Equal(t, "minimal", cfg.Preset)
+	assert.Equal(t, "blue", cfg.Directory.Style)
+	assert.NotContains(t, cfg.Format, "\ue0b0")
+	assert.NotContains(t, cfg.Format, "|")
 }
 
-func TestApplyThemeRounded(t *testing.T) {
-	cfg, ok := config.ApplyTheme("rounded")
+func TestApplyPresetCapsulePowerline(t *testing.T) {
+	for _, name := range []string{"pastel-powerline", "gruvbox-rainbow", "catppuccin"} {
+		t.Run(name, func(t *testing.T) {
+			cfg, ok := config.ApplyPreset(name)
+			assert.True(t, ok)
+			assert.Equal(t, name, cfg.Preset)
+			// Left half-circle cap
+			assert.Contains(t, cfg.Format, "\ue0b6")
+			// Arrow transitions
+			assert.Contains(t, cfg.Format, "\ue0b0")
+			assert.Contains(t, cfg.Format, "$directory")
+			assert.Contains(t, cfg.Format, "$git_branch")
+			assert.Contains(t, cfg.Format, "$model")
+			assert.Contains(t, cfg.Format, "$cost")
+			assert.Contains(t, cfg.Format, "$context")
+			assert.Contains(t, cfg.Directory.Format, " ")
+			assert.Contains(t, cfg.Directory.Style, "bg:")
+		})
+	}
+}
+
+func TestApplyPresetPastelTrailingArrow(t *testing.T) {
+	cfg, _ := config.ApplyPreset("pastel-powerline")
+	// Pastel Powerline ends with right arrow (not rounded half-circle), last color is dark blue
+	assert.Contains(t, cfg.Format, "\ue0b0 ](fg:#33658A)")
+}
+
+func TestApplyPresetGruvboxTrailingRounded(t *testing.T) {
+	cfg, _ := config.ApplyPreset("gruvbox-rainbow")
+	// Gruvbox ends with rounded right half-circle
+	assert.Contains(t, cfg.Format, "\ue0b4 ](fg:#3c3836)")
+}
+
+func TestApplyPresetTokyoNight(t *testing.T) {
+	cfg, ok := config.ApplyPreset("tokyo-night")
 	assert.True(t, ok)
-	assert.Equal(t, "rounded", cfg.Theme)
-	assert.Contains(t, cfg.Format, "\ue0b6")
+	assert.Equal(t, "tokyo-night", cfg.Preset)
+	// Gradient leading
+	assert.Contains(t, cfg.Format, "░▒▓")
+	// All rounded half-circle transitions (not arrows)
 	assert.Contains(t, cfg.Format, "\ue0b4")
+	assert.NotContains(t, cfg.Format, "\ue0b0")
 	assert.Contains(t, cfg.Format, "$directory")
+	assert.Contains(t, cfg.Directory.Style, "bg:")
 }
 
-func TestApplyThemeMinimal(t *testing.T) {
-	cfg, ok := config.ApplyTheme("minimal")
-	assert.True(t, ok)
-	assert.Equal(t, "minimal", cfg.Theme)
-	assert.Equal(t, "$directory  $git_branch  $model  $cost  $context", cfg.Format)
-	// Minimal should not have bg styles
-	assert.Equal(t, "dim", cfg.Directory.Style)
-	assert.Equal(t, "dim", cfg.GitBranch.Style)
-	// Minimal git_branch should not have icons
-	assert.NotContains(t, cfg.GitBranch.Format, "\ue0a0")
-}
-
-func TestApplyThemeUnknown(t *testing.T) {
-	cfg, ok := config.ApplyTheme("nonexistent")
+func TestApplyPresetUnknown(t *testing.T) {
+	cfg, ok := config.ApplyPreset("nonexistent")
 	assert.False(t, ok)
 	assert.Equal(t, config.Default().Format, cfg.Format)
-}
-
-func TestThemesHavePalettes(t *testing.T) {
-	for _, name := range config.ThemeNames() {
-		cfg, ok := config.ApplyTheme(name)
-		assert.True(t, ok, "theme %s should exist", name)
-		assert.Len(t, cfg.Palettes, 4, "theme %s should include all palettes", name)
-	}
 }

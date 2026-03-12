@@ -53,7 +53,7 @@ claude-statusline themes
 | `prompt` | Render the status line (also the default when no command is given) |
 | `init` | Create default config at `~/.config/claude-statusline/config.toml` |
 | `test` | Render with your config and mock data (for config iteration) |
-| `themes` | Preview all built-in themes and palettes with mock data |
+| `themes` | Preview all built-in presets with mock data |
 
 Global flags: `--config / -c` to override config path, `--version`.
 
@@ -65,6 +65,40 @@ Works with zero config. The default format is:
 
 ```toml
 format = "$directory | $git_branch | $model | $cost | $context"
+```
+
+## Presets
+
+Presets are self-contained visual styles inspired by [Starship presets](https://starship.rs/presets/). Each preset defines the layout, separators, colors, and module configuration.
+
+```toml
+preset = "catppuccin"
+```
+
+Preview all presets: `claude-statusline themes`
+
+### Built-in presets
+
+| Preset | Description | Nerd Font |
+|--------|-------------|-----------|
+| `default` | Flat with `\|` pipes, standard colors | No |
+| `minimal` | Clean spacing, no separators | No |
+| `pastel-powerline` | Pastel powerline arrows (purple/pink/peach/blue) | Yes |
+| `tokyo-night` | Dark blues rounded powerline with gradient | Yes |
+| `gruvbox-rainbow` | Earthy rainbow powerline | Yes |
+| `catppuccin` | Catppuccin Mocha powerline | Yes |
+
+### Overriding preset defaults
+
+Presets set the format string and module configs, but you can override any field:
+
+```toml
+preset = "catppuccin"
+
+# Override just one module
+[model]
+format = " {{.DisplayName}} "
+style = "fg:#11111b bg:#cba6f7 bold"
 ```
 
 ## Modules
@@ -98,67 +132,6 @@ Modules support a `style` field that accepts several formats:
 - **Hex:** `fg:#ff5500`, `bg:#333333`
 - **256-color:** `208`, `fg:208`, `bg:238`
 - **Combined:** `fg:#aaa bg:#333 bold`
-- **Palette:** `palette:accent`, `fg:palette:seg_fg bg:palette:dir_bg`
-
-## Themes and palettes
-
-**Themes** control the visual structure (separators, padding, icons). **Palettes** control the colors. Any theme works with any palette.
-
-```toml
-theme = "powerline"
-palette = "catppuccin"
-```
-
-Preview all combinations: `claude-statusline themes`
-
-### Built-in themes
-
-| Theme | Look | Needs Nerd Font |
-|-------|------|-----------------|
-| `default` | Flat with `\|` pipes | No |
-| `powerline` | Arrow segments with colored backgrounds | Yes |
-| `rounded` | Capsule/pill segments with gaps | Yes |
-| `minimal` | Clean spacing, no separators or icons | No |
-
-### Built-in palettes
-
-Four palettes are built in: `default`, `tokyo-night`, `gruvbox`, and `catppuccin`.
-
-You can also define your own palette:
-
-```toml
-palette = "my-theme"
-
-[palettes.my-theme]
-accent = "#ff5500"
-cost_ok = "green"
-cost_warn = "yellow"
-cost_high = "red"
-ctx_ok = "green"
-ctx_warn = "yellow"
-ctx_high = "red"
-# Segment colors (used by powerline/rounded themes)
-seg_fg = "black"
-dir_bg = "blue"
-git_bg = "green"
-model_bg = "magenta"
-cost_bg = "238"
-ctx_bg = "236"
-```
-
-### Overriding theme defaults
-
-Themes set the format string and module configs, but you can override any field:
-
-```toml
-theme = "powerline"
-palette = "catppuccin"
-
-# Override just one module
-[model]
-format = " {{.DisplayName}} "
-style = "fg:palette:seg_fg bg:palette:model_bg bold"
-```
 
 ## License
 

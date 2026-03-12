@@ -57,7 +57,7 @@ func (m DirectoryModule) Render(data input.Data, cfg config.Config) (string, err
 		return "", err
 	}
 
-	return wrapStyle(result, cfg.Directory.Style, cfg), nil
+	return wrapStyle(result, cfg.Directory.Style), nil
 }
 
 // truncatePath keeps the last maxSegments path segments fully and abbreviates earlier ones

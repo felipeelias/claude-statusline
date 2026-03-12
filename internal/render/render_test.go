@@ -92,9 +92,9 @@ func TestRenderEmptyFormat(t *testing.T) {
 	assert.Empty(t, result)
 }
 
-func TestRenderPaletteStyle(t *testing.T) {
+func TestRenderInlineStyle(t *testing.T) {
 	cfg := config.Default()
-	cfg.Format = "[text](palette:accent)"
+	cfg.Format = "[text](cyan)"
 	result, err := render.Render(cfg, input.Data{})
 	require.NoError(t, err)
 	assert.Contains(t, result, "\033[36m")

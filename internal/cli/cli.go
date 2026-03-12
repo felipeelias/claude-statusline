@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"sort"
 
 	"github.com/felipeelias/claude-statusline/internal/config"
 	"github.com/felipeelias/claude-statusline/internal/input"
@@ -141,7 +140,7 @@ func testCommand() *ucli.Command {
 func themesCommand() *ucli.Command {
 	return &ucli.Command{
 		Name:  "themes",
-		Usage: "Preview all built-in themes and palettes with mock data",
+		Usage: "Preview all built-in presets with mock data",
 		Action: func(cmd *ucli.Context) error {
 			writer := cmd.App.Writer
 			data := mockInput()
@@ -161,43 +160,20 @@ func themesCommand() *ucli.Command {
 
 			_, _ = fmt.Fprintf(writer, "current:\n  %s\n\n", output)
 
-			// Show theme × palette matrix.
-			paletteNames := paletteNamesSorted()
+			for _, name := range config.PresetNames() {
+				cfg, _ := config.ApplyPreset(name)
 
-			for _, themeName := range config.ThemeNames() {
-				_, _ = fmt.Fprintf(writer, "--- %s ---\n", themeName)
-
-				for _, paletteName := range paletteNames {
-					cfg, _ := config.ApplyTheme(themeName)
-					cfg.Palette = paletteName
-
-					output, err := render.Render(cfg, data)
-					if err != nil {
-						return fmt.Errorf("rendering %s/%s: %w", themeName, paletteName, err)
-					}
-
-					_, _ = fmt.Fprintf(writer, "  %-12s %s\n", paletteName+":", output)
+				output, err := render.Render(cfg, data)
+				if err != nil {
+					return fmt.Errorf("rendering %s: %w", name, err)
 				}
 
-				_, _ = fmt.Fprintln(writer)
+				_, _ = fmt.Fprintf(writer, "%-18s %s\n", name+":", output)
 			}
 
 			return nil
 		},
 	}
-}
-
-func paletteNamesSorted() []string {
-	defaults := config.Default()
-
-	names := make([]string, 0, len(defaults.Palettes))
-	for name := range defaults.Palettes {
-		names = append(names, name)
-	}
-
-	sort.Strings(names)
-
-	return names
 }
 
 //nolint:mnd // mock data uses literal values by design

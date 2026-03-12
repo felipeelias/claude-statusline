@@ -33,7 +33,7 @@ func (SessionTimerModule) Render(data input.Data, cfg config.Config) (string, er
 		return "", err
 	}
 
-	return wrapStyle(result, cfg.SessionTimer.Style, cfg), nil
+	return wrapStyle(result, cfg.SessionTimer.Style), nil
 }
 
 // formatDuration converts milliseconds to a human-readable duration.

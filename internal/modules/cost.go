@@ -22,5 +22,5 @@ func (CostModule) Render(data input.Data, cfg config.Config) (string, error) {
 
 	winningStyle := resolveThresholdStyle(cost, cfg.Cost.Thresholds, cfg.Cost.Style)
 
-	return wrapStyle(result, winningStyle, cfg), nil
+	return wrapStyle(result, winningStyle), nil
 }

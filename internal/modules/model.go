@@ -23,5 +23,5 @@ func (ModelModule) Render(data input.Data, cfg config.Config) (string, error) {
 		return "", err
 	}
 
-	return wrapStyle(result, cfg.Model.Style, cfg), nil
+	return wrapStyle(result, cfg.Model.Style), nil
 }
