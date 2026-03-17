@@ -131,7 +131,7 @@ func Default() Config {
 			Style:  "cyan",
 		},
 		SessionTimer: SessionTimerConfig{
-			Format:   "{{.Elapsed}}",
+			Format:   "{{if .Hours}}{{.Hours}}h{{end}}{{printf \"%02d\" .Minutes}}m{{printf \"%02d\" .Seconds}}s",
 			Style:    "dim",
 			Disabled: true,
 		},
@@ -254,7 +254,7 @@ format = "$directory | $git_branch | $model | $cost | $context"
 # Disabled by default. Set disabled = false and add to format string to enable.
 # [session_timer]
 # disabled = false
-# format = "{{.Elapsed}}"
+# format = "{{if .Hours}}{{.Hours}}h{{end}}{{printf \"%02d\" .Minutes}}m{{printf \"%02d\" .Seconds}}s"
 # style = "dim"
 
 # [lines_changed]
