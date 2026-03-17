@@ -67,7 +67,7 @@ format = "$directory | $git_branch | $model | $cost | $context"
 
 ## Presets
 
-Presets are self-contained visual styles inspired by [Starship presets](https://starship.rs/presets/). Each preset defines the layout, separators, colors, and module configuration.
+Presets are inspired by [Starship presets](https://starship.rs/presets/). Each preset defines the layout, separators, colors, and module configuration.
 
 ```toml
 preset = "catppuccin"
@@ -126,10 +126,21 @@ disabled = false
 
 Modules support a `style` field that accepts several formats:
 
-- **Named:** `red`, `green`, `cyan`, `bold`, `dim`, `italic`
-- **Hex:** `fg:#ff5500`, `bg:#333333`
-- **256-color:** `208`, `fg:208`, `bg:238`
-- **Combined:** `fg:#aabbcc bg:#333333 bold`
+| Format | Example |
+|--------|---------|
+| Named | `red`, `green`, `cyan`, `bold`, `dim`, `italic` |
+| Hex | `fg:#ff5500`, `bg:#333333` |
+| 256-color | `208`, `fg:208`, `bg:238` |
+| Combined | `fg:#aabbcc bg:#333333 bold` |
+
+## Alternatives
+
+Other statusline tools from the [awesome-claude-code](https://github.com/hesreallyhim/awesome-claude-code) list:
+
+- [claude-powerline](https://github.com/Owloops/claude-powerline)
+- [CCometixLine](https://github.com/Haleclipse/CCometixLine)
+- [claudia-statusline](https://github.com/hagan/claudia-statusline)
+- [ccstatusline](https://github.com/sirmalloc/ccstatusline)
 
 ## License
 
