@@ -168,7 +168,7 @@ func themesCommand() *ucli.Command {
 					return fmt.Errorf("rendering %s: %w", name, err)
 				}
 
-				_, _ = fmt.Fprintf(writer, "%-18s %s\n", name+":", output)
+				_, _ = fmt.Fprintf(writer, "%s:\n  %s\n\n", name, output)
 			}
 
 			return nil
