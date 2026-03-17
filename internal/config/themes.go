@@ -126,7 +126,11 @@ func powerlineConfig(preset string, format string, segFg string, colors [5]strin
 				{Above: ctxHighThreshold, Style: segStyle(thresholds.high, colors[4])},
 			},
 		},
-		SessionTimer: SessionTimerConfig{Format: " {{.Elapsed}} ", Style: "dim", Disabled: true},
+		SessionTimer: SessionTimerConfig{
+			Format:   " {{if .Hours}}{{.Hours}}h{{end}}{{printf \"%02d\" .Minutes}}m{{printf \"%02d\" .Seconds}}s ",
+			Style:    "dim",
+			Disabled: true,
+		},
 		LinesChanged: LinesChangedConfig{
 			Format: " +{{.Added}} -{{.Removed}} ", AddedStyle: "green", RemovedStyle: "red", Disabled: true,
 		},

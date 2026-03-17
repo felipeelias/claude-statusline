@@ -25,7 +25,7 @@ func TestSessionTimerModule_Render(t *testing.T) {
 
 		result, err := modules.SessionTimerModule{}.Render(data, cfg)
 		require.NoError(t, err)
-		assert.Contains(t, result, "1:01:01")
+		assert.Contains(t, result, "1h01m01s")
 	})
 
 	t.Run("formats minutes seconds without hours", func(t *testing.T) {
@@ -35,7 +35,7 @@ func TestSessionTimerModule_Render(t *testing.T) {
 
 		result, err := modules.SessionTimerModule{}.Render(data, cfg)
 		require.NoError(t, err)
-		assert.Contains(t, result, "2:05")
+		assert.Contains(t, result, "02m05s")
 	})
 
 	t.Run("zero duration returns empty string", func(t *testing.T) {
