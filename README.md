@@ -110,6 +110,7 @@ style = "fg:#11111b bg:#cba6f7 bold"
 | `context` | on | Context window usage with progress bar |
 | `session_timer` | off | Session elapsed time |
 | `lines_changed` | off | Lines added/removed |
+| `usage` | off | Plan usage limits (5-hour block and weekly) |
 
 ### Enabling modules
 
@@ -121,6 +122,41 @@ format = "$directory | $git_branch | $model | $cost | $context | $session_timer"
 [session_timer]
 disabled = false
 ```
+
+### Usage module
+
+The `usage` module shows your Claude plan usage limits by querying the Anthropic OAuth API. It requires OAuth credentials:
+
+- **macOS**: Reads from the system Keychain (set up automatically by `claude login`)
+- **Linux**: Reads from `~/.claude/.credentials.json`
+
+```toml
+format = "$directory | $git_branch | $model | $cost | $context | $usage"
+
+[usage]
+disabled = false
+```
+
+Template fields:
+
+| Field | Description |
+|-------|-------------|
+| `{{.BlockPct}}` | 5-hour rolling window usage (0-100) |
+| `{{.WeeklyPct}}` | 7-day usage (0-100) |
+| `{{.BlockBar}}` | Progress bar for 5-hour window |
+| `{{.WeeklyBar}}` | Progress bar for 7-day window |
+| `{{.BlockResets}}` | Time until 5-hour reset (e.g. "2h13m") |
+| `{{.WeeklyResets}}` | Time until 7-day reset (e.g. "3d2h") |
+
+To only show usage when it exceeds a threshold (e.g. session above 70%, weekly above 80%):
+
+```toml
+[usage]
+disabled = false
+format = '{{if ge .BlockPct 70.0}}{{.BlockBar}} {{printf "%.0f" .BlockPct}}%{{end}}{{if ge .WeeklyPct 80.0}} W:{{printf "%.0f" .WeeklyPct}}%{{end}}'
+```
+
+API responses are cached to `~/.cache/claude-statusline/usage.json` (default TTL: 120 seconds). The module renders empty if credentials are unavailable.
 
 ## Style system
 

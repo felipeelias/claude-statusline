@@ -88,5 +88,6 @@ func buildRegistry(cfg config.Config) map[string]moduleEntry {
 		"git_branch":    {module: modules.GitBranchModule{}, disabled: cfg.GitBranch.Disabled},
 		"session_timer": {module: modules.SessionTimerModule{}, disabled: cfg.SessionTimer.Disabled},
 		"lines_changed": {module: modules.LinesChangedModule{}, disabled: cfg.LinesChanged.Disabled},
+		"usage":         {module: modules.NewUsageModule(), disabled: cfg.Usage.Disabled},
 	}
 }

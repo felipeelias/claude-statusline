@@ -60,3 +60,21 @@
 # format = "+{{.Added}} -{{.Removed}}"
 # added_style = "green"
 # removed_style = "red"
+
+# Requires OAuth credentials (macOS Keychain or ~/.claude/.credentials.json).
+# Add $usage to your format string to display it.
+# [usage]
+# disabled = false
+# format = '{{.BlockBar}} {{printf "%.0f" .BlockPct}}% W:{{printf "%.0f" .WeeklyPct}}%'
+# style = "green"
+# cache_ttl_seconds = 120
+# bar_width = 5
+# bar_fill = "█"
+# bar_empty = "░"
+# thresholds = [
+#   { above = 75, style = "yellow" },
+#   { above = 90, style = "red" },
+# ]
+#
+# To only show usage when it exceeds a threshold:
+# format = '{{if ge .BlockPct 70.0}}{{.BlockBar}} {{printf "%.0f" .BlockPct}}%{{end}}{{if ge .WeeklyPct 80.0}} W:{{printf "%.0f" .WeeklyPct}}%{{end}}'

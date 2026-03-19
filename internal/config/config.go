@@ -19,6 +19,7 @@ type Config struct {
 	GitBranch    GitBranchConfig    `toml:"git_branch"`
 	SessionTimer SessionTimerConfig `toml:"session_timer"`
 	LinesChanged LinesChangedConfig `toml:"lines_changed"`
+	Usage        UsageConfig        `toml:"usage"`
 }
 
 // Threshold defines a conditional style based on a numeric value.
@@ -84,6 +85,19 @@ type LinesChangedConfig struct {
 	Disabled     bool   `toml:"disabled"`
 }
 
+// UsageConfig holds usage module settings.
+type UsageConfig struct {
+	Format          string      `toml:"format"`
+	Style           string      `toml:"style"`
+	Disabled        bool        `toml:"disabled"`
+	CacheTTLSeconds int         `toml:"cache_ttl_seconds"`
+	BarWidth        int         `toml:"bar_width"`
+	BarFill         string      `toml:"bar_fill"`
+	BarEmpty        string      `toml:"bar_empty"`
+	Thresholds      []Threshold `toml:"thresholds"`
+	TestMode        bool        `toml:"-"`
+}
+
 const (
 	defaultTruncationLength = 3
 	defaultBarWidth         = 5
@@ -92,6 +106,9 @@ const (
 	costWarnThreshold       = 5.0
 	ctxWarnThreshold        = 50
 	ctxHighThreshold        = 90
+	defaultCacheTTLSeconds  = 120
+	usageWarnThreshold      = 75
+	usageHighThreshold      = 90
 )
 
 // Default returns a Config with hardcoded default values.
@@ -146,6 +163,19 @@ func Default() Config {
 			AddedStyle:   "green",
 			RemovedStyle: "red",
 			Disabled:     true,
+		},
+		Usage: UsageConfig{
+			Format:          `{{.BlockBar}} {{printf "%.0f" .BlockPct}}% W:{{printf "%.0f" .WeeklyPct}}%`,
+			Style:           "green",
+			Disabled:        true,
+			CacheTTLSeconds: defaultCacheTTLSeconds,
+			BarWidth:        defaultBarWidth,
+			BarFill:         defaultBarFill,
+			BarEmpty:        defaultBarEmpty,
+			Thresholds: []Threshold{
+				{Above: usageWarnThreshold, Style: "yellow"},
+				{Above: usageHighThreshold, Style: "red"},
+			},
 		},
 	}
 }
@@ -270,6 +300,22 @@ format = "$directory | $git_branch | $model | $cost | $context"
 # format = "+{{.Added}} -{{.Removed}}"
 # added_style = "green"
 # removed_style = "red"
+
+# Requires OAuth credentials (macOS Keychain or ~/.claude/.credentials.json).
+# Add $usage to your format string to display it.
+# [usage]
+# disabled = false
+# format = '{{.BlockBar}} {{printf "%.0f" .BlockPct}}% W:{{printf "%.0f" .WeeklyPct}}%'
+# style = "green"
+# cache_ttl_seconds = 120
+# bar_width = 5
+# thresholds = [
+#   { above = 75, style = "yellow" },
+#   { above = 90, style = "red" },
+# ]
+#
+# To only show usage when it exceeds a threshold:
+# format = '{{if ge .BlockPct 70.0}}{{.BlockBar}} {{printf "%.0f" .BlockPct}}%{{end}}{{if ge .WeeklyPct 80.0}} W:{{printf "%.0f" .WeeklyPct}}%{{end}}'
 `
 
 // SampleConfig returns a commented TOML config template for the init command.
