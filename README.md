@@ -125,10 +125,7 @@ disabled = false
 
 ### Usage module
 
-The `usage` module shows your Claude plan usage limits by querying the Anthropic OAuth API. It requires OAuth credentials:
-
-- **macOS**: Reads from the system Keychain (set up automatically by `claude login`)
-- **Linux**: Reads from `~/.claude/.credentials.json`
+The `usage` module shows your Claude plan usage limits (5-hour rolling window and 7-day). Requires Claude Code 2.1.80+ which provides `rate_limits` in the status line payload.
 
 ```toml
 format = "$directory | $git_branch | $model | $cost | $context | $usage"
@@ -156,7 +153,7 @@ disabled = false
 format = '{{if ge .BlockPct 70.0}}{{.BlockBar}} {{printf "%.0f" .BlockPct}}%{{end}}{{if ge .WeeklyPct 80.0}} W:{{printf "%.0f" .WeeklyPct}}%{{end}}'
 ```
 
-API responses are cached to `~/.cache/claude-statusline/usage.json` (default TTL: 120 seconds). The module renders empty if credentials are unavailable.
+The module renders empty if `rate_limits` is not present in the Claude Code payload (older versions).
 
 ## Style system
 

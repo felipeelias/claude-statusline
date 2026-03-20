@@ -87,15 +87,13 @@ type LinesChangedConfig struct {
 
 // UsageConfig holds usage module settings.
 type UsageConfig struct {
-	Format          string      `toml:"format"`
-	Style           string      `toml:"style"`
-	Disabled        bool        `toml:"disabled"`
-	CacheTTLSeconds int         `toml:"cache_ttl_seconds"`
-	BarWidth        int         `toml:"bar_width"`
-	BarFill         string      `toml:"bar_fill"`
-	BarEmpty        string      `toml:"bar_empty"`
-	Thresholds      []Threshold `toml:"thresholds"`
-	TestMode        bool        `toml:"-"`
+	Format     string      `toml:"format"`
+	Style      string      `toml:"style"`
+	Disabled   bool        `toml:"disabled"`
+	BarWidth   int         `toml:"bar_width"`
+	BarFill    string      `toml:"bar_fill"`
+	BarEmpty   string      `toml:"bar_empty"`
+	Thresholds []Threshold `toml:"thresholds"`
 }
 
 const (
@@ -106,7 +104,6 @@ const (
 	costWarnThreshold       = 5.0
 	ctxWarnThreshold        = 50
 	ctxHighThreshold        = 90
-	defaultCacheTTLSeconds  = 120
 	usageWarnThreshold      = 75
 	usageHighThreshold      = 90
 )
@@ -165,13 +162,12 @@ func Default() Config {
 			Disabled:     true,
 		},
 		Usage: UsageConfig{
-			Format:          `{{.BlockBar}} {{printf "%.0f" .BlockPct}}% W:{{printf "%.0f" .WeeklyPct}}%`,
-			Style:           "green",
-			Disabled:        true,
-			CacheTTLSeconds: defaultCacheTTLSeconds,
-			BarWidth:        defaultBarWidth,
-			BarFill:         defaultBarFill,
-			BarEmpty:        defaultBarEmpty,
+			Format:   `{{.BlockBar}} {{printf "%.0f" .BlockPct}}% W:{{printf "%.0f" .WeeklyPct}}%`,
+			Style:    "green",
+			Disabled: true,
+			BarWidth: defaultBarWidth,
+			BarFill:  defaultBarFill,
+			BarEmpty: defaultBarEmpty,
 			Thresholds: []Threshold{
 				{Above: usageWarnThreshold, Style: "yellow"},
 				{Above: usageHighThreshold, Style: "red"},
@@ -301,13 +297,12 @@ format = "$directory | $git_branch | $model | $cost | $context"
 # added_style = "green"
 # removed_style = "red"
 
-# Requires OAuth credentials (macOS Keychain or ~/.claude/.credentials.json).
+# Requires Claude Code 2.1.80+ which provides rate_limits in the status line payload.
 # Add $usage to your format string to display it.
 # [usage]
 # disabled = false
 # format = '{{.BlockBar}} {{printf "%.0f" .BlockPct}}% W:{{printf "%.0f" .WeeklyPct}}%'
 # style = "green"
-# cache_ttl_seconds = 120
 # bar_width = 5
 # thresholds = [
 #   { above = 75, style = "yellow" },

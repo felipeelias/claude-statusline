@@ -142,11 +142,10 @@ func powerlineConfig(preset string, format string, segFg string, colors [5]strin
 			Format: " +{{.Added}} -{{.Removed}} ", AddedStyle: "green", RemovedStyle: "red", Disabled: true,
 		},
 		Usage: UsageConfig{
-			Format:          ` {{.BlockBar}} {{printf "%.0f" .BlockPct}}% W:{{printf "%.0f" .WeeklyPct}}% `,
-			Style:           segStyle(segFg, colors[4]),
-			Disabled:        true,
-			CacheTTLSeconds: defaultCacheTTLSeconds,
-			BarWidth:        defaultBarWidth,
+			Format:   ` {{.BlockBar}} {{printf "%.0f" .BlockPct}}% W:{{printf "%.0f" .WeeklyPct}}% `,
+			Style:    segStyle(segFg, colors[4]),
+			Disabled: true,
+			BarWidth: defaultBarWidth,
 			BarFill:         defaultBarFill,
 			BarEmpty:        defaultBarEmpty,
 			Thresholds: []Threshold{

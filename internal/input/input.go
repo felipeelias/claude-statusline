@@ -26,6 +26,18 @@ type ContextWindow struct {
 	ContextWindowSize   int     `json:"context_window_size"`
 }
 
+// RateLimitWindow represents a single rate limit window (5-hour or 7-day).
+type RateLimitWindow struct {
+	UsedPercentage float64 `json:"used_percentage"`
+	ResetsAt       int64   `json:"resets_at"`
+}
+
+// RateLimits represents Claude plan usage limits.
+type RateLimits struct {
+	FiveHour RateLimitWindow `json:"five_hour"`
+	SevenDay RateLimitWindow `json:"seven_day"`
+}
+
 // Worktree represents active worktree details.
 type Worktree struct {
 	Name   string `json:"name"`
@@ -41,6 +53,7 @@ type Data struct {
 	Cwd           string        `json:"cwd"`
 	Cost          Cost          `json:"cost"`
 	ContextWindow ContextWindow `json:"context_window"`
+	RateLimits    *RateLimits   `json:"rate_limits"`
 	Worktree      *Worktree     `json:"worktree"`
 }
 
