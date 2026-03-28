@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"time"
 
 	"github.com/felipeelias/claude-statusline/internal/config"
 	"github.com/felipeelias/claude-statusline/internal/input"
@@ -162,7 +163,6 @@ func themesCommand() *ucli.Command {
 
 			for _, name := range config.PresetNames() {
 				cfg, _ := config.ApplyPreset(name)
-
 				output, err := render.Render(cfg, data)
 				if err != nil {
 					return fmt.Errorf("rendering %s: %w", name, err)
@@ -201,6 +201,16 @@ func mockInput() input.Data {
 			UsedPercentage:      42.5,
 			RemainingPercentage: 57.5,
 			ContextWindowSize:   200000,
+		},
+		RateLimits: &input.RateLimits{
+			FiveHour: input.RateLimitWindow{
+				UsedPercentage: 42,
+				ResetsAt:       time.Now().Add(2*time.Hour + 13*time.Minute).Unix(),
+			},
+			SevenDay: input.RateLimitWindow{
+				UsedPercentage: 15,
+				ResetsAt:       time.Now().Add(3*24*time.Hour + 2*time.Hour).Unix(),
+			},
 		},
 	}
 }

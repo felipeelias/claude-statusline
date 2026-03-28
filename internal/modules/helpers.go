@@ -2,6 +2,7 @@ package modules
 
 import (
 	"bytes"
+	"strings"
 	"text/template"
 
 	"github.com/felipeelias/claude-statusline/internal/config"
@@ -28,6 +29,16 @@ func renderTemplate(name, format string, data any) (string, error) {
 // wrapStyle parses a style string and wraps text with ANSI codes.
 func wrapStyle(text, styleStr string) string {
 	return style.Parse(styleStr).Wrap(text)
+}
+
+const pctMax = 100
+
+// buildBar creates a progress bar string from a percentage value.
+func buildBar(pct float64, width int, fill, empty string) string {
+	filled := min(max(int(pct/pctMax*float64(width)), 0), width)
+	emptyCount := width - filled
+
+	return strings.Repeat(fill, filled) + strings.Repeat(empty, emptyCount)
 }
 
 // resolveThresholdStyle evaluates thresholds in order. The last threshold whose
