@@ -8,25 +8,43 @@ import (
 	"github.com/felipeelias/claude-statusline/internal/input"
 )
 
-// GitBranchModule renders the current git branch name with optional worktree indicator.
+// GitBranchModule renders the current git branch name with optional status indicators.
 type GitBranchModule struct{}
 
 func (GitBranchModule) Name() string { return "git_branch" }
 
 func (GitBranchModule) Render(data input.Data, cfg config.Config) (string, error) {
-	branch := gitBranch(data.Cwd)
-	if branch == "" {
-		return "", nil
-	}
-
 	inWorktree := data.Worktree != nil && data.Worktree.Name != ""
 
-	templateData := struct {
-		Branch     string
-		InWorktree bool
-	}{
-		Branch:     branch,
-		InWorktree: inWorktree,
+	var templateData gitBranchTemplateData
+
+	if cfg.GitBranch.Mode == "simple" {
+		branch := gitBranchSimple(data.Cwd)
+		if branch == "" {
+			return "", nil
+		}
+		templateData = gitBranchTemplateData{
+			Branch:     branch,
+			InWorktree: inWorktree,
+		}
+	} else {
+		status := gitStatusDetailed(data.Cwd)
+		if status.Branch == "" {
+			return "", nil
+		}
+		dirty := status.Staged > 0 || status.Modified > 0 || status.Untracked > 0 || status.Conflicts > 0
+		templateData = gitBranchTemplateData{
+			Branch:     status.Branch,
+			InWorktree: inWorktree,
+			Staged:     status.Staged,
+			Modified:   status.Modified,
+			Untracked:  status.Untracked,
+			Ahead:      status.Ahead,
+			Behind:     status.Behind,
+			Conflicts:  status.Conflicts,
+			IsDirty:    dirty,
+			IsClean:    !dirty,
+		}
 	}
 
 	result, err := renderTemplate("git_branch", cfg.GitBranch.Format, templateData)
@@ -37,9 +55,22 @@ func (GitBranchModule) Render(data input.Data, cfg config.Config) (string, error
 	return wrapStyle(result, cfg.GitBranch.Style), nil
 }
 
-// gitBranch runs git rev-parse to get the current branch name.
+type gitBranchTemplateData struct {
+	Branch     string
+	InWorktree bool
+	Staged     int
+	Modified   int
+	Untracked  int
+	Ahead      int
+	Behind     int
+	Conflicts  int
+	IsDirty    bool
+	IsClean    bool
+}
+
+// gitBranchSimple runs git rev-parse to get the current branch name.
 // Returns empty string if the directory is not a git repo or git is not installed.
-func gitBranch(cwd string) string {
+func gitBranchSimple(cwd string) string {
 	//nolint:noctx // no context available in module interface
 	cmd := exec.Command("git", "-C", cwd, "rev-parse", "--abbrev-ref", "HEAD")
 	out, err := cmd.Output()
@@ -48,4 +79,17 @@ func gitBranch(cwd string) string {
 	}
 
 	return strings.TrimSpace(string(out))
+}
+
+// gitStatusDetailed runs git status --porcelain=v2 --branch and parses the output.
+// Returns zero-value GitStatus if the directory is not a git repo or git is not installed.
+func gitStatusDetailed(cwd string) GitStatus {
+	//nolint:noctx // no context available in module interface
+	cmd := exec.Command("git", "-C", cwd, "status", "--porcelain=v2", "--branch")
+	out, err := cmd.Output()
+	if err != nil {
+		return GitStatus{}
+	}
+
+	return ParsePorcelainV2(string(out))
 }
