@@ -19,36 +19,43 @@ type GitStatus struct {
 // ParsePorcelainV2 parses the output of git status --porcelain=v2 --branch
 // into a GitStatus struct.
 func ParsePorcelainV2(output string) GitStatus {
-	var s GitStatus
+	var status GitStatus
 
-	for _, line := range strings.Split(output, "\n") {
+	for line := range strings.SplitSeq(output, "\n") {
 		switch {
 		case strings.HasPrefix(line, "# branch.head "):
-			s.Branch = strings.TrimPrefix(line, "# branch.head ")
+			status.Branch = strings.TrimPrefix(line, "# branch.head ")
 
 		case strings.HasPrefix(line, "# branch.ab "):
-			_, _ = fmt.Sscanf(line, "# branch.ab +%d -%d", &s.Ahead, &s.Behind)
+			_, _ = fmt.Sscanf(line, "# branch.ab +%d -%d", &status.Ahead, &status.Behind)
 
 		case strings.HasPrefix(line, "1 ") || strings.HasPrefix(line, "2 "):
-			// Ordinary (1) or rename/copy (2) entry: "1 XY ..." or "2 XY ..."
-			fields := strings.SplitN(line, " ", 3)
-			if len(fields) >= 2 && len(fields[1]) == 2 {
-				xy := fields[1]
-				if xy[0] != '.' {
-					s.Staged++
-				}
-				if xy[1] != '.' {
-					s.Modified++
-				}
-			}
+			parseChangedEntry(line, &status)
 
 		case strings.HasPrefix(line, "u "):
-			s.Conflicts++
+			status.Conflicts++
 
 		case strings.HasPrefix(line, "? "):
-			s.Untracked++
+			status.Untracked++
 		}
 	}
 
-	return s
+	return status
+}
+
+// parseChangedEntry parses an ordinary (1) or rename/copy (2) porcelain v2 entry.
+func parseChangedEntry(line string, status *GitStatus) {
+	// "1 XY sub ..." or "2 XY sub ..." — XY is at field index 1.
+	statusXY, _, found := strings.Cut(line[2:], " ")
+	if !found || len(statusXY) != 2 {
+		return
+	}
+
+	if statusXY[0] != '.' {
+		status.Staged++
+	}
+
+	if statusXY[1] != '.' {
+		status.Modified++
+	}
 }

@@ -128,9 +128,13 @@ func Default() Config {
 			},
 		},
 		GitBranch: GitBranchConfig{
-			Format: iconBranch + " {{.Branch}}{{if .InWorktree}} " + iconWorktree + "{{end}}{{if .IsDirty}} *{{end}}{{if .Ahead}} \u2191{{.Ahead}}{{end}}{{if .Behind}} \u2193{{.Behind}}{{end}}",
-			Style:  "cyan",
-			Mode:   "detailed",
+			Format: iconBranch + " {{.Branch}}" +
+				"{{if .InWorktree}} " + iconWorktree + "{{end}}" +
+				"{{if .IsDirty}} *{{end}}" +
+				"{{if .Ahead}} \u2191{{.Ahead}}{{end}}" +
+				"{{if .Behind}} \u2193{{.Behind}}{{end}}",
+			Style: "cyan",
+			Mode:  "detailed",
 		},
 		SessionTimer: SessionTimerConfig{
 			Format:   "{{if .Hours}}{{.Hours}}h{{end}}{{printf \"%02d\" .Minutes}}m{{printf \"%02d\" .Seconds}}s",
@@ -250,9 +254,10 @@ format = "$directory | $git_branch | $model | $cost | $context"
 # ]
 
 # [git_branch]
-# mode = "detailed"  # "detailed" (default) or "simple" (fast, branch name only)
-# format = " {{.Branch}}{{if .InWorktree}} {{end}}{{if .IsDirty}} *{{end}}{{if .Ahead}} ↑{{.Ahead}}{{end}}{{if .Behind}} ↓{{.Behind}}{{end}}"
+# mode = "detailed"  # "detailed" (default) or "simple" (fast, branch only)
 # style = "cyan"
+# Template fields: Branch, InWorktree, IsDirty, IsClean,
+#   Staged, Modified, Untracked, Ahead, Behind, Conflicts
 
 # Disabled by default. Set disabled = false and add to format string to enable.
 # [session_timer]

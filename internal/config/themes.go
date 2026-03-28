@@ -105,9 +105,13 @@ func powerlineConfig(preset string, format string, segFg string, colors [5]strin
 			TruncationLength: defaultTruncationLength,
 		},
 		GitBranch: GitBranchConfig{
-			Format: " " + iconBranch + " {{.Branch}}{{if .InWorktree}} " + iconWorktree + "{{end}}{{if .IsDirty}} *{{end}}{{if .Ahead}} \u2191{{.Ahead}}{{end}}{{if .Behind}} \u2193{{.Behind}}{{end}} ",
-			Style:  segStyle(segFg, colors[1]),
-			Mode:   "detailed",
+			Format: " " + iconBranch + " {{.Branch}}" +
+				"{{if .InWorktree}} " + iconWorktree + "{{end}}" +
+				"{{if .IsDirty}} *{{end}}" +
+				"{{if .Ahead}} \u2191{{.Ahead}}{{end}}" +
+				"{{if .Behind}} \u2193{{.Behind}}{{end}} ",
+			Style: segStyle(segFg, colors[1]),
+			Mode:  "detailed",
 		},
 		Model: ModelConfig{
 			Format: " {{.DisplayName}} ", Style: segStyle(segFg, colors[2]) + " bold",
