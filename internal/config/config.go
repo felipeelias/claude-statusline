@@ -66,7 +66,7 @@ type GitBranchConfig struct {
 	Format   string `toml:"format"`
 	Style    string `toml:"style"`
 	Disabled bool   `toml:"disabled"`
-	Mode     string `toml:"mode"`
+	Mode     string `toml:"mode"` // "detailed" (default) or "simple"
 }
 
 // SessionTimerConfig holds session timer module settings.
