@@ -104,7 +104,7 @@ style = "fg:#11111b bg:#cba6f7 bold"
 | Module | Default | Description |
 |--------|---------|-------------|
 | `directory` | on | Current directory (tilde-collapsed, truncated) |
-| `git_branch` | on | Current git branch (with worktree indicator) |
+| `git_branch` | on | Git branch with status indicators (dirty, ahead/behind, worktree) |
 | `model` | on | Model display name |
 | `cost` | on | Session cost in USD |
 | `context` | on | Context window usage with progress bar |
@@ -174,6 +174,10 @@ Other statusline tools from the [awesome-claude-code](https://github.com/hesreal
 - [CCometixLine](https://github.com/Haleclipse/CCometixLine)
 - [claudia-statusline](https://github.com/hagan/claudia-statusline)
 - [ccstatusline](https://github.com/sirmalloc/ccstatusline)
+
+## Contributors
+
+- [@sammcj](https://github.com/sammcj)
 
 ## License
 
