@@ -2,11 +2,15 @@ package modules
 
 import (
 	"fmt"
-	"math"
 	"time"
 
 	"github.com/felipeelias/claude-statusline/internal/config"
 	"github.com/felipeelias/claude-statusline/internal/input"
+)
+
+const (
+	hoursPerDay    = 24
+	minutesPerHour = 60
 )
 
 // UsageModule renders plan usage limits (5-hour block and weekly).
@@ -55,14 +59,14 @@ func formatResetTimestamp(ts int64) string {
 		return ""
 	}
 
-	d := time.Until(time.Unix(ts, 0))
-	if d <= 0 {
+	remaining := time.Until(time.Unix(ts, 0))
+	if remaining <= 0 {
 		return "0m"
 	}
 
-	days := int(d.Hours()) / 24
-	hours := int(d.Hours()) % 24
-	minutes := int(math.Mod(d.Minutes(), 60))
+	days := int(remaining.Hours()) / hoursPerDay
+	hours := int(remaining.Hours()) % hoursPerDay
+	minutes := int(remaining.Minutes()) % minutesPerHour
 
 	if days > 0 {
 		return fmt.Sprintf("%dd%dh", days, hours)

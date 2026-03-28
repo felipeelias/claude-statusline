@@ -109,6 +109,8 @@ const (
 )
 
 // Default returns a Config with hardcoded default values.
+//
+//nolint:funlen // single-struct initializer reads best as one block
 func Default() Config {
 	return Config{
 		Preset: "default",
@@ -308,9 +310,7 @@ format = "$directory | $git_branch | $model | $cost | $context"
 #   { above = 75, style = "yellow" },
 #   { above = 90, style = "red" },
 # ]
-#
-# To only show usage when it exceeds a threshold:
-# format = '{{if ge .BlockPct 70.0}}{{.BlockBar}} {{printf "%.0f" .BlockPct}}%{{end}}{{if ge .WeeklyPct 80.0}} W:{{printf "%.0f" .WeeklyPct}}%{{end}}'
+# Template fields: BlockPct, WeeklyPct, BlockBar, WeeklyBar, BlockResets, WeeklyResets
 `
 
 // SampleConfig returns a commented TOML config template for the init command.

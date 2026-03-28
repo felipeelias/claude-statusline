@@ -117,7 +117,8 @@ func TestUsageModule_Render(t *testing.T) {
 
 	t.Run("conditional format hides below threshold", func(t *testing.T) {
 		customCfg := config.Default()
-		customCfg.Usage.Format = `{{if ge .BlockPct 70.0}}{{printf "%.0f" .BlockPct}}%{{end}}{{if ge .WeeklyPct 80.0}} W:{{printf "%.0f" .WeeklyPct}}%{{end}}`
+		customCfg.Usage.Format = `{{if ge .BlockPct 70.0}}{{printf "%.0f" .BlockPct}}%{{end}}` +
+			`{{if ge .WeeklyPct 80.0}} W:{{printf "%.0f" .WeeklyPct}}%{{end}}`
 
 		lowData := input.Data{
 			RateLimits: &input.RateLimits{
@@ -135,7 +136,8 @@ func TestUsageModule_Render(t *testing.T) {
 
 	t.Run("conditional format shows above threshold", func(t *testing.T) {
 		customCfg := config.Default()
-		customCfg.Usage.Format = `{{if ge .BlockPct 70.0}}{{printf "%.0f" .BlockPct}}%{{end}}{{if ge .WeeklyPct 80.0}} W:{{printf "%.0f" .WeeklyPct}}%{{end}}`
+		customCfg.Usage.Format = `{{if ge .BlockPct 70.0}}{{printf "%.0f" .BlockPct}}%{{end}}` +
+			`{{if ge .WeeklyPct 80.0}} W:{{printf "%.0f" .WeeklyPct}}%{{end}}`
 
 		highData := input.Data{
 			RateLimits: &input.RateLimits{

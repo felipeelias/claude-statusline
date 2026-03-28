@@ -146,8 +146,8 @@ func powerlineConfig(preset string, format string, segFg string, colors [5]strin
 			Style:    segStyle(segFg, colors[4]),
 			Disabled: true,
 			BarWidth: defaultBarWidth,
-			BarFill:         defaultBarFill,
-			BarEmpty:        defaultBarEmpty,
+			BarFill:  defaultBarFill,
+			BarEmpty: defaultBarEmpty,
 			Thresholds: []Threshold{
 				{Above: usageWarnThreshold, Style: segStyle(thresholds.warn, colors[4])},
 				{Above: usageHighThreshold, Style: segStyle(thresholds.high, colors[4])},
@@ -161,14 +161,14 @@ func powerlineConfig(preset string, format string, segFg string, colors [5]strin
 // Colors: pink → peach → light blue → teal → dark blue.
 func presetPastelPowerline() Config {
 	colors := [5]string{"#DA627D", "#FCA17D", "#86BBD8", "#06969A", "#33658A"}
-	tc := thresholdColors{warn: "#f9e2af", high: "#f38ba8"}
-	cfg := powerlineConfig("pastel-powerline", capsuleFormat(colors, plRight), "", colors, tc)
+	thColors := thresholdColors{warn: "#f9e2af", high: "#f38ba8"}
+	cfg := powerlineConfig("pastel-powerline", capsuleFormat(colors, plRight), "", colors, thColors)
 
 	usageBg := "#7B506F" // muted plum
 	cfg.Usage.Style = segStyle("", usageBg)
 	cfg.Usage.Thresholds = []Threshold{
-		{Above: usageWarnThreshold, Style: segStyle(tc.warn, usageBg)},
-		{Above: usageHighThreshold, Style: segStyle(tc.high, usageBg)},
+		{Above: usageWarnThreshold, Style: segStyle(thColors.warn, usageBg)},
+		{Above: usageHighThreshold, Style: segStyle(thColors.high, usageBg)},
 	}
 
 	return cfg
@@ -192,14 +192,14 @@ func presetTokyoNight() Config {
 		"$context" +
 		"[" + plRightCap + " ](fg:" + colors[4] + ")"
 
-	tc := thresholdColors{warn: "#e0af68", high: "#f7768e"}
-	cfg := powerlineConfig("tokyo-night", format, "#e3e5e5", colors, tc)
+	thColors := thresholdColors{warn: "#e0af68", high: "#f7768e"}
+	cfg := powerlineConfig("tokyo-night", format, "#e3e5e5", colors, thColors)
 
 	usageBg := "#292e42" // tokyo night surface
 	cfg.Usage.Style = segStyle("#e3e5e5", usageBg)
 	cfg.Usage.Thresholds = []Threshold{
-		{Above: usageWarnThreshold, Style: segStyle(tc.warn, usageBg)},
-		{Above: usageHighThreshold, Style: segStyle(tc.high, usageBg)},
+		{Above: usageWarnThreshold, Style: segStyle(thColors.warn, usageBg)},
+		{Above: usageHighThreshold, Style: segStyle(thColors.high, usageBg)},
 	}
 
 	return cfg
@@ -210,14 +210,14 @@ func presetTokyoNight() Config {
 // Colors: yellow → aqua → blue → gray → dark.
 func presetGruvboxRainbow() Config {
 	colors := [5]string{"#d79921", "#689d6a", "#458588", "#665c54", "#3c3836"}
-	tc := thresholdColors{warn: "#fabd2f", high: "#fb4934"}
-	cfg := powerlineConfig("gruvbox-rainbow", capsuleFormat(colors, plRightCap), "#fbf1c7", colors, tc)
+	thColors := thresholdColors{warn: "#fabd2f", high: "#fb4934"}
+	cfg := powerlineConfig("gruvbox-rainbow", capsuleFormat(colors, plRightCap), "#fbf1c7", colors, thColors)
 
 	usageBg := "#504945" // gruvbox bg2 (warm brown)
 	cfg.Usage.Style = segStyle("#fbf1c7", usageBg)
 	cfg.Usage.Thresholds = []Threshold{
-		{Above: usageWarnThreshold, Style: segStyle(tc.warn, usageBg)},
-		{Above: usageHighThreshold, Style: segStyle(tc.high, usageBg)},
+		{Above: usageWarnThreshold, Style: segStyle(thColors.warn, usageBg)},
+		{Above: usageHighThreshold, Style: segStyle(thColors.high, usageBg)},
 	}
 
 	return cfg
@@ -228,8 +228,8 @@ func presetGruvboxRainbow() Config {
 // Colors: peach → yellow → green → sapphire → lavender.
 func presetCatppuccin() Config {
 	colors := [5]string{"#fab387", "#f9e2af", "#a6e3a1", "#74c7ec", "#b4befe"}
-	tc := thresholdColors{warn: "#f9e2af", high: "#f38ba8"}
-	cfg := powerlineConfig("catppuccin", capsuleFormat(colors, plRightCap), "#11111b", colors, tc)
+	thColors := thresholdColors{warn: "#f9e2af", high: "#f38ba8"}
+	cfg := powerlineConfig("catppuccin", capsuleFormat(colors, plRightCap), "#11111b", colors, thColors)
 
 	usageBg := "#cba6f7" // catppuccin mauve
 	cfg.Usage.Style = segStyle("#11111b", usageBg)
