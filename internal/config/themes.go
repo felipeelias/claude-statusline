@@ -54,6 +54,7 @@ func presetMinimal() Config {
 	cfg.Directory.Style = "blue"
 	cfg.GitBranch.Format = "{{.Branch}}"
 	cfg.GitBranch.Style = "cyan"
+	cfg.GitBranch.Mode = "simple"
 	cfg.Model.Style = "bold"
 	cfg.Cost.Style = "green"
 	cfg.Context.Format = `{{printf "%.0f" .UsedPct}}%`
@@ -104,8 +105,13 @@ func powerlineConfig(preset string, format string, segFg string, colors [5]strin
 			TruncationLength: defaultTruncationLength,
 		},
 		GitBranch: GitBranchConfig{
-			Format: " " + iconBranch + " {{.Branch}}{{if .InWorktree}} " + iconWorktree + "{{end}} ",
-			Style:  segStyle(segFg, colors[1]),
+			Format: " " + iconBranch + " {{.Branch}}" +
+				"{{if .InWorktree}} " + iconWorktree + "{{end}}" +
+				"{{if .IsDirty}} *{{end}}" +
+				"{{if .Ahead}} \u2191{{.Ahead}}{{end}}" +
+				"{{if .Behind}} \u2193{{.Behind}}{{end}} ",
+			Style: segStyle(segFg, colors[1]),
+			Mode:  "detailed",
 		},
 		Model: ModelConfig{
 			Format: " {{.DisplayName}} ", Style: segStyle(segFg, colors[2]) + " bold",

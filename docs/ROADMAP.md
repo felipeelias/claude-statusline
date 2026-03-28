@@ -761,7 +761,17 @@ disabled = true
 
 ## Priority: Medium
 
-### 18. Multi-line layout
+### 18. Timeout for git subprocess calls
+
+The `git_branch` module runs `git status --porcelain=v2 --branch` (detailed mode) or `git rev-parse --abbrev-ref HEAD` (simple mode) without a timeout. On network-mounted repos or hung git processes, this could block the status line indefinitely.
+
+**Change:**
+
+Replace `exec.Command` with `exec.CommandContext` using a `context.WithTimeout` (e.g., 5 seconds). Apply to both `gitBranchSimple` and `gitStatusDetailed` in `internal/modules/gitbranch.go`. On timeout, return empty output (same as a non-git directory).
+
+---
+
+### 19. Multi-line layout
 
 Allow the format string to define multiple lines using `\n` as a line separator. Claude Code's status line natively supports multiple output lines — each `echo`/line in the output becomes a separate row.
 
@@ -787,7 +797,7 @@ Line 2: $0.42 | ███░░ 60% | 05m23s
 
 ---
 
-### 19. Flex separator
+### 20. Flex separator
 
 A special token `$fill` in the format string that expands to fill available terminal width, enabling right-aligned segments.
 
@@ -813,7 +823,7 @@ This would render:
 
 ---
 
-### 20. Message count module
+### 21. Message count module
 
 A new `messages` module that shows the number of user and assistant messages in the current session. Reads from the transcript JSONL file.
 
@@ -848,7 +858,7 @@ disabled = true
 
 ---
 
-### 21. Exceeds 200k indicator
+### 22. Exceeds 200k indicator
 
 Add a `{{.Exceeds200k}}` boolean field to the context module that is true when `exceeds_200k_tokens` is true in the JSON payload. This warns when the last API response exceeded 200k total tokens.
 
@@ -871,7 +881,7 @@ format = '{{.Bar}} {{printf "%.0f" .UsedPct}}%{{if .Exceeds200k}} LARGE{{end}}'
 
 ## Priority: Low
 
-### 22. Usage API integration
+### 23. Usage API integration
 
 Query the Anthropic OAuth API (`api.anthropic.com/api/oauth/usage`) to show real-time 5-hour block and 7-day usage percentages.
 
@@ -901,7 +911,7 @@ cache_ttl_seconds = 300
 
 ---
 
-### 23. Skills / hooks tracking
+### 24. Skills / hooks tracking
 
 Track which Claude Code tools/skills are invoked during a session by integrating with Claude Code hooks.
 

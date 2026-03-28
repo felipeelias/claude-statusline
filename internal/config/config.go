@@ -66,6 +66,7 @@ type GitBranchConfig struct {
 	Format   string `toml:"format"`
 	Style    string `toml:"style"`
 	Disabled bool   `toml:"disabled"`
+	Mode     string `toml:"mode"` // "detailed" (default) or "simple"
 }
 
 // SessionTimerConfig holds session timer module settings.
@@ -127,8 +128,13 @@ func Default() Config {
 			},
 		},
 		GitBranch: GitBranchConfig{
-			Format: iconBranch + " {{.Branch}}{{if .InWorktree}} " + iconWorktree + "{{end}}",
-			Style:  "cyan",
+			Format: iconBranch + " {{.Branch}}" +
+				"{{if .InWorktree}} " + iconWorktree + "{{end}}" +
+				"{{if .IsDirty}} *{{end}}" +
+				"{{if .Ahead}} \u2191{{.Ahead}}{{end}}" +
+				"{{if .Behind}} \u2193{{.Behind}}{{end}}",
+			Style: "cyan",
+			Mode:  "detailed",
 		},
 		SessionTimer: SessionTimerConfig{
 			Format:   "{{if .Hours}}{{.Hours}}h{{end}}{{printf \"%02d\" .Minutes}}m{{printf \"%02d\" .Seconds}}s",
@@ -248,8 +254,10 @@ format = "$directory | $git_branch | $model | $cost | $context"
 # ]
 
 # [git_branch]
-# format = " {{.Branch}}{{if .InWorktree}} {{end}}"
+# mode = "detailed"  # "detailed" (default) or "simple" (fast, branch only)
 # style = "cyan"
+# Template fields: Branch, InWorktree, IsDirty, IsClean,
+#   Staged, Modified, Untracked, Ahead, Behind, Conflicts
 
 # Disabled by default. Set disabled = false and add to format string to enable.
 # [session_timer]
