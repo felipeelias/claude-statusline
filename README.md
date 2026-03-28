@@ -145,7 +145,7 @@ Template fields:
 | `{{.BlockResets}}` | Time until 5-hour reset (e.g. "2h13m") |
 | `{{.WeeklyResets}}` | Time until 7-day reset (e.g. "3d2h") |
 
-To only show usage when it exceeds a threshold (e.g. session above 70%, weekly above 80%):
+To only show usage when it exceeds a threshold (e.g. 5-hour block above 70%, weekly above 80%):
 
 ```toml
 [usage]

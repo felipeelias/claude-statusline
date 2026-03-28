@@ -48,7 +48,7 @@ func (UsageModule) Render(data input.Data, cfg config.Config) (string, error) {
 		return "", err
 	}
 
-	winningStyle := resolveThresholdStyle(blockPct, cfg.Usage.Thresholds, cfg.Usage.Style)
+	winningStyle := resolveThresholdStyle(max(blockPct, weeklyPct), cfg.Usage.Thresholds, cfg.Usage.Style)
 
 	return wrapStyle(result, winningStyle), nil
 }

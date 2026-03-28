@@ -95,6 +95,20 @@ func TestUsageModule_Render(t *testing.T) {
 		assert.Contains(t, result, "\033[31m")
 	})
 
+	t.Run("weekly threshold drives style when block is low", func(t *testing.T) {
+		weeklyHighData := input.Data{
+			RateLimits: &input.RateLimits{
+				FiveHour: input.RateLimitWindow{UsedPercentage: 10},
+				SevenDay: input.RateLimitWindow{UsedPercentage: 80},
+			},
+		}
+
+		result, err := modules.UsageModule{}.Render(weeklyHighData, cfg)
+
+		require.NoError(t, err)
+		assert.Contains(t, result, "\033[33m")
+	})
+
 	t.Run("custom format with weekly only", func(t *testing.T) {
 		customCfg := config.Default()
 		customCfg.Usage.Format = `{{printf "%.0f" .WeeklyPct}}%`
