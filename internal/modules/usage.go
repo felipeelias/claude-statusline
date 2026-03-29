@@ -27,6 +27,8 @@ func (UsageModule) Render(data input.Data, cfg config.Config) (string, error) {
 	blockPct := rateLimits.FiveHour.UsedPercentage
 	weeklyPct := rateLimits.SevenDay.UsedPercentage
 
+	fill, empty := resolveBarChars(cfg.Usage.BarStyle, cfg.Usage.BarFill, cfg.Usage.BarEmpty)
+
 	templateData := struct {
 		BlockPct     float64
 		WeeklyPct    float64
@@ -37,8 +39,8 @@ func (UsageModule) Render(data input.Data, cfg config.Config) (string, error) {
 	}{
 		BlockPct:     blockPct,
 		WeeklyPct:    weeklyPct,
-		BlockBar:     buildBar(blockPct, cfg.Usage.BarWidth, cfg.Usage.BarFill, cfg.Usage.BarEmpty),
-		WeeklyBar:    buildBar(weeklyPct, cfg.Usage.BarWidth, cfg.Usage.BarFill, cfg.Usage.BarEmpty),
+		BlockBar:     buildBar(blockPct, cfg.Usage.BarWidth, fill, empty),
+		WeeklyBar:    buildBar(weeklyPct, cfg.Usage.BarWidth, fill, empty),
 		BlockResets:  formatResetTimestamp(rateLimits.FiveHour.ResetsAt),
 		WeeklyResets: formatResetTimestamp(rateLimits.SevenDay.ResetsAt),
 	}

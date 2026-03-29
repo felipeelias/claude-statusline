@@ -50,36 +50,7 @@ The module name stays `git_branch` and config key stays `[git_branch]` for backw
 
 ---
 
-### 3. Context bar display styles
-
-The context module currently renders a progress bar using configurable `bar_fill` and `bar_empty` characters. Add a `bar_style` config field that selects from named presets, making it easy to switch visual styles without manually setting fill/empty characters.
-
-**New config field:**
-
-```toml
-[context]
-bar_style = "blocks"
-```
-
-**Built-in bar styles:**
-
-| Name      | Fill | Empty | Example (60%)             |
-| --------- | ---- | ----- | ------------------------- |
-| `classic` | `█`  | `░`   | `███░░` (current default) |
-| `blocks`  | `█`  | `▒`   | `███▒▒`                   |
-| `dots`    | `⣿`  | `⣀`   | `⣿⣿⣿⣀⣀`                   |
-| `line`    | `━`  | `─`   | `━━━──`                   |
-| `squares` | `◼`  | `◻`   | `◼◼◼◻◻`                   |
-
-**Behavior:**
-
-- When `bar_style` is set, it overrides `bar_fill` and `bar_empty`.
-- When `bar_fill` or `bar_empty` are explicitly set alongside `bar_style`, the explicit values win (user overrides take priority).
-- Default: no `bar_style` set, uses `bar_fill`/`bar_empty` directly (preserves current behavior).
-
----
-
-### 4. Directory display modes
+### 3. Directory display modes
 
 The directory module currently does tilde substitution and first-character truncation of path segments beyond `truncation_length`. Add a `display_mode` config field that controls the truncation strategy.
 

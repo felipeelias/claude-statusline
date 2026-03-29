@@ -127,7 +127,7 @@ func powerlineConfig(preset string, format string, segFg string, colors [5]strin
 		},
 		Context: ContextConfig{
 			Format: ` {{.Bar}} {{printf "%.0f" .UsedPct}}% `, Style: segStyle(segFg, colors[4]),
-			BarWidth: defaultBarWidth, BarFill: defaultBarFill, BarEmpty: defaultBarEmpty,
+			BarWidth: defaultBarWidth,
 			Thresholds: []Threshold{
 				{Above: ctxWarnThreshold, Style: segStyle(thresholds.warn, colors[4])},
 				{Above: ctxHighThreshold, Style: segStyle(thresholds.high, colors[4])},
@@ -146,8 +146,6 @@ func powerlineConfig(preset string, format string, segFg string, colors [5]strin
 			Style:    segStyle(segFg, colors[4]),
 			Disabled: true,
 			BarWidth: defaultBarWidth,
-			BarFill:  defaultBarFill,
-			BarEmpty: defaultBarEmpty,
 			Thresholds: []Threshold{
 				{Above: usageWarnThreshold, Style: segStyle(thresholds.warn, colors[4])},
 				{Above: usageHighThreshold, Style: segStyle(thresholds.high, colors[4])},

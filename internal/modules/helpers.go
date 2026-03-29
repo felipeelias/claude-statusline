@@ -33,6 +33,43 @@ func wrapStyle(text, styleStr string) string {
 
 const pctMax = 100
 
+// barPreset defines a named pair of fill/empty characters for progress bars.
+type barPreset struct {
+	Fill  string
+	Empty string
+}
+
+// barStyles maps bar_style names to their fill/empty character presets.
+var barStyles = map[string]barPreset{
+	"classic": {Fill: "\u2588", Empty: "\u2591"}, // █ ░
+	"blocks":  {Fill: "\u2588", Empty: "\u2592"}, // █ ▒
+	"dots":    {Fill: "\u28ff", Empty: "\u28c0"}, // ⣿ ⣀
+	"line":    {Fill: "\u2501", Empty: "\u2500"}, // ━ ─
+	"squares": {Fill: "\u25fc", Empty: "\u25fb"}, // ◼ ◻
+}
+
+// resolveBarChars determines the fill and empty characters for a progress bar.
+// Priority: explicit bar_fill/bar_empty > bar_style preset > classic defaults.
+func resolveBarChars(barStyle, barFill, barEmpty string) (string, string) {
+	fill := "\u2588" // █ classic default
+	empty := "\u2591" // ░ classic default
+
+	if preset, ok := barStyles[barStyle]; ok {
+		fill = preset.Fill
+		empty = preset.Empty
+	}
+
+	if barFill != "" {
+		fill = barFill
+	}
+
+	if barEmpty != "" {
+		empty = barEmpty
+	}
+
+	return fill, empty
+}
+
 // buildBar creates a progress bar string from a percentage value.
 func buildBar(pct float64, width int, fill, empty string) string {
 	filled := min(max(int(pct/pctMax*float64(width)), 0), width)

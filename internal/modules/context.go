@@ -13,7 +13,8 @@ func (ContextModule) Name() string { return "context" }
 func (ContextModule) Render(data input.Data, cfg config.Config) (string, error) {
 	pct := data.ContextWindow.UsedPercentage
 
-	bar := buildBar(pct, cfg.Context.BarWidth, cfg.Context.BarFill, cfg.Context.BarEmpty)
+	fill, empty := resolveBarChars(cfg.Context.BarStyle, cfg.Context.BarFill, cfg.Context.BarEmpty)
+	bar := buildBar(pct, cfg.Context.BarWidth, fill, empty)
 
 	templateData := struct {
 		Bar     string
