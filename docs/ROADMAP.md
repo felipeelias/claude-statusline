@@ -50,30 +50,6 @@ The module name stays `git_branch` and config key stays `[git_branch]` for backw
 
 ---
 
-### 2. Burn rate (cost per hour)
-
-Add `{{.BurnRate}}` and `{{.APIDurationMs}}` fields to the cost module. Burn rate shows dollars-per-hour based on session duration and total cost. API duration comes from the new `cost.total_api_duration_ms` field in the JSON payload.
-
-**New template fields on cost module:**
-
-| Field               | Type    | Description                                                |
-| ------------------- | ------- | ---------------------------------------------------------- |
-| `{{.BurnRate}}`     | float64 | Cost per hour (TotalCostUSD / (TotalDurationMs / 3600000)) |
-| `{{.APIDurationMs}}`| int     | Total time spent waiting for API responses (ms)            |
-
-If duration is zero, `BurnRate` is `0`.
-
-**Example config:**
-
-```toml
-[cost]
-format = '${{printf "%.2f" .TotalCostUSD}} ({{printf "%.2f" .BurnRate}}/hr)'
-```
-
-**Default format:** Keep the current default (`$X.XX`) unchanged. The burn rate is opt-in via format customization.
-
----
-
 ### 3. Context bar display styles
 
 The context module currently renders a progress bar using configurable `bar_fill` and `bar_empty` characters. Add a `bar_style` config field that selects from named presets, making it easy to switch visual styles without manually setting fill/empty characters.
