@@ -10,6 +10,8 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+const barStyleDots = "dots"
+
 func TestResolveBarChars_ViaContextModule(t *testing.T) {
 	baseCfg := config.Default()
 	baseCfg.Context.Format = "{{.Bar}}"
@@ -27,7 +29,7 @@ func TestResolveBarChars_ViaContextModule(t *testing.T) {
 
 	t.Run("bar_style dots", func(t *testing.T) {
 		cfg := baseCfg
-		cfg.Context.BarStyle = "dots"
+		cfg.Context.BarStyle = barStyleDots
 		result, err := modules.ContextModule{}.Render(data, cfg)
 		require.NoError(t, err)
 		assert.Contains(t, result, "\u28ff\u28ff\u28ff\u28c0\u28c0")
@@ -59,7 +61,7 @@ func TestResolveBarChars_ViaContextModule(t *testing.T) {
 
 	t.Run("explicit bar_fill overrides bar_style", func(t *testing.T) {
 		cfg := baseCfg
-		cfg.Context.BarStyle = "dots"
+		cfg.Context.BarStyle = barStyleDots
 		cfg.Context.BarFill = "#"
 		result, err := modules.ContextModule{}.Render(data, cfg)
 		require.NoError(t, err)
@@ -68,7 +70,7 @@ func TestResolveBarChars_ViaContextModule(t *testing.T) {
 
 	t.Run("explicit bar_empty overrides bar_style", func(t *testing.T) {
 		cfg := baseCfg
-		cfg.Context.BarStyle = "dots"
+		cfg.Context.BarStyle = barStyleDots
 		cfg.Context.BarEmpty = "O"
 		result, err := modules.ContextModule{}.Render(data, cfg)
 		require.NoError(t, err)
@@ -77,7 +79,7 @@ func TestResolveBarChars_ViaContextModule(t *testing.T) {
 
 	t.Run("explicit both override bar_style completely", func(t *testing.T) {
 		cfg := baseCfg
-		cfg.Context.BarStyle = "dots"
+		cfg.Context.BarStyle = barStyleDots
 		cfg.Context.BarFill = "#"
 		cfg.Context.BarEmpty = "-"
 		result, err := modules.ContextModule{}.Render(data, cfg)

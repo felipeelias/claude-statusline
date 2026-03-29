@@ -105,5 +105,4 @@ func TestContextModule_Render(t *testing.T) {
 		require.NoError(t, err)
 		assert.Contains(t, result, "\033[32m")
 	})
-
 }
