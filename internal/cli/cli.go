@@ -184,23 +184,40 @@ func mockInput() input.Data {
 	}
 
 	return input.Data{
-		SessionID: "test-session",
-		Version:   "1.0.0",
+		SessionID:      "test-session",
+		TranscriptPath: "/tmp/claude/transcript.jsonl",
+		Version:        "1.0.0",
 		Model: input.Model{
 			ID:          "claude-opus-4-20250514",
 			DisplayName: "Claude Opus 4",
 		},
 		Cwd: cwd,
+		Workspace: input.Workspace{
+			CurrentDir: cwd,
+			ProjectDir: cwd,
+		},
 		Cost: input.Cost{
-			TotalCostUSD:      0.42,
-			TotalDurationMs:   180000,
-			TotalLinesAdded:   42,
-			TotalLinesRemoved: 7,
+			TotalCostUSD:       0.42,
+			TotalDurationMs:    180000,
+			TotalAPIDurationMs: 12000,
+			TotalLinesAdded:    42,
+			TotalLinesRemoved:  7,
 		},
 		ContextWindow: input.ContextWindow{
+			TotalInputTokens:    15234,
+			TotalOutputTokens:   4521,
 			UsedPercentage:      42.5,
 			RemainingPercentage: 57.5,
 			ContextWindowSize:   200000,
+			CurrentUsage: &input.CurrentUsage{
+				InputTokens:              8500,
+				OutputTokens:             1200,
+				CacheCreationInputTokens: 5000,
+				CacheReadInputTokens:     2000,
+			},
+		},
+		OutputStyle: input.OutputStyle{
+			Name: "default",
 		},
 		RateLimits: &input.RateLimits{
 			FiveHour: input.RateLimitWindow{
