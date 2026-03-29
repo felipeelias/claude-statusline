@@ -104,3 +104,39 @@ func TestResolveBarChars_ViaContextModule(t *testing.T) {
 		assert.Contains(t, result, "###--")
 	})
 }
+
+func TestResolveBarChars_ViaUsageModule(t *testing.T) {
+	baseCfg := config.Default()
+	baseCfg.Usage.Format = "{{.BlockBar}}"
+	baseCfg.Usage.BarWidth = 5
+
+	data := input.Data{
+		RateLimits: &input.RateLimits{
+			FiveHour: input.RateLimitWindow{UsedPercentage: 60.0},
+			SevenDay: input.RateLimitWindow{UsedPercentage: 10.0},
+		},
+	}
+
+	t.Run("no bar_style uses classic defaults", func(t *testing.T) {
+		result, err := modules.UsageModule{}.Render(data, baseCfg)
+		require.NoError(t, err)
+		assert.Contains(t, result, "\u2588\u2588\u2588\u2591\u2591")
+	})
+
+	t.Run("bar_style dots", func(t *testing.T) {
+		cfg := baseCfg
+		cfg.Usage.BarStyle = barStyleDots
+		result, err := modules.UsageModule{}.Render(data, cfg)
+		require.NoError(t, err)
+		assert.Contains(t, result, "\u28ff\u28ff\u28ff\u28c0\u28c0")
+	})
+
+	t.Run("explicit bar_fill overrides bar_style", func(t *testing.T) {
+		cfg := baseCfg
+		cfg.Usage.BarStyle = barStyleDots
+		cfg.Usage.BarFill = "#"
+		result, err := modules.UsageModule{}.Render(data, cfg)
+		require.NoError(t, err)
+		assert.Contains(t, result, "###\u28c0\u28c0")
+	})
+}
