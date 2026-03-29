@@ -269,9 +269,9 @@ format = "$directory | $git_branch | $model | $cost | $context"
 # format = '{{.Bar}} {{printf "%.0f" .UsedPct}}%'
 # style = "green"
 # bar_width = 5
-# bar_style = ""  # "classic", "blocks", "dots", "line", "squares"
-# bar_fill = "█"   # overrides bar_style fill character
-# bar_empty = "░"  # overrides bar_style empty character
+# bar_style = "classic"  # "classic", "blocks", "dots", "line", "squares"
+# bar_fill = "█"         # overrides bar_style fill character
+# bar_empty = "░"        # overrides bar_style empty character
 # thresholds = [
 #   { above = 50, style = "yellow" },
 #   { above = 90, style = "red" },
@@ -302,6 +302,9 @@ format = "$directory | $git_branch | $model | $cost | $context"
 # format = '{{.BlockBar}} {{printf "%.0f" .BlockPct}}% W:{{printf "%.0f" .WeeklyPct}}%'
 # style = "green"
 # bar_width = 5
+# bar_style = "classic"  # "classic", "blocks", "dots", "line", "squares"
+# bar_fill = "█"         # overrides bar_style fill character
+# bar_empty = "░"        # overrides bar_style empty character
 # thresholds = [
 #   { above = 75, style = "yellow" },
 #   { above = 90, style = "red" },

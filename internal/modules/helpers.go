@@ -51,8 +51,9 @@ var barStyles = map[string]barPreset{
 // resolveBarChars determines the fill and empty characters for a progress bar.
 // Priority: explicit bar_fill/bar_empty > bar_style preset > classic defaults.
 func resolveBarChars(barStyle, barFill, barEmpty string) (string, string) {
-	fill := "\u2588" // █ classic default
-	empty := "\u2591" // ░ classic default
+	classic := barStyles["classic"]
+	fill := classic.Fill
+	empty := classic.Empty
 
 	if preset, ok := barStyles[barStyle]; ok {
 		fill = preset.Fill
