@@ -53,6 +53,16 @@ func TestParse_FullJSON(t *testing.T) {
 		"agent": {
 			"name": "security-reviewer"
 		},
+		"rate_limits": {
+			"five_hour": {
+				"used_percentage": 12.5,
+				"resets_at": 1710000000
+			},
+			"seven_day": {
+				"used_percentage": 48.0,
+				"resets_at": 1710500000
+			}
+		},
 		"worktree": {
 			"name": "my-feature",
 			"path": "/path/to/.claude/worktrees/my-feature",
@@ -102,6 +112,12 @@ func TestParse_FullJSON(t *testing.T) {
 
 	require.NotNil(t, data.Agent)
 	assert.Equal(t, "security-reviewer", data.Agent.Name)
+
+	require.NotNil(t, data.RateLimits)
+	assert.InDelta(t, 12.5, data.RateLimits.FiveHour.UsedPercentage, 0.01)
+	assert.Equal(t, int64(1710000000), data.RateLimits.FiveHour.ResetsAt)
+	assert.InDelta(t, 48.0, data.RateLimits.SevenDay.UsedPercentage, 0.01)
+	assert.Equal(t, int64(1710500000), data.RateLimits.SevenDay.ResetsAt)
 
 	require.NotNil(t, data.Worktree)
 	assert.Equal(t, "my-feature", data.Worktree.Name)
