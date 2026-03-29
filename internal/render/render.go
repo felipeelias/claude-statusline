@@ -89,5 +89,6 @@ func buildRegistry(cfg config.Config) map[string]moduleEntry {
 		"session_timer": {module: modules.SessionTimerModule{}, disabled: cfg.SessionTimer.Disabled},
 		"lines_changed": {module: modules.LinesChangedModule{}, disabled: cfg.LinesChanged.Disabled},
 		"usage":         {module: modules.UsageModule{}, disabled: cfg.Usage.Disabled},
+		"version":       {module: modules.VersionModule{}, disabled: cfg.Version.Disabled},
 	}
 }
