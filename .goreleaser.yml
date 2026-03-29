@@ -1,5 +1,8 @@
 version: 2
 
+release:
+  mode: keep-existing
+
 builds:
   - main: .
     binary: claude-statusline
@@ -27,9 +30,4 @@ checksum:
   name_template: checksums.txt
 
 changelog:
-  sort: asc
-  filters:
-    exclude:
-      - "^docs:"
-      - "^test:"
-      - "^ci:"
+  disable: true
