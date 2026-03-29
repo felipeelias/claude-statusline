@@ -127,39 +127,7 @@ style = "dim"
 
 ---
 
-### 6. Version module
-
-A new `version` module that displays the Claude Code version string from the JSON payload. The `version` field already exists in `input.Data`.
-
-**Config:**
-
-```toml
-[version]
-format = "v{{.Version}}"
-style = "dim"
-disabled = true
-```
-
-| Field      | Type   | Default           | Description                     |
-| ---------- | ------ | ----------------- | ------------------------------- |
-| `format`   | string | `"v{{.Version}}"` | Go template with `{{.Version}}` |
-| `style`    | string | `"dim"`           | ANSI style                      |
-| `disabled` | bool   | `true`            | Disabled by default             |
-
-**Template fields:**
-
-| Field          | Type   | Description                                 |
-| -------------- | ------ | ------------------------------------------- |
-| `{{.Version}}` | string | Claude Code version string (e.g., `1.0.33`) |
-
-**Behavior:**
-
-- If the version string is empty, renders empty.
-- Referenced as `$version` in the format string.
-
----
-
-### 7. Model name formatting options
+### 6. Model name formatting options
 
 The model module currently exposes `{{.DisplayName}}` from the JSON payload. Add `{{.ID}}` (the raw model ID) and a `{{.Short}}` field that extracts a compact name from the model ID.
 

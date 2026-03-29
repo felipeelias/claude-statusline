@@ -20,6 +20,7 @@ type Config struct {
 	SessionTimer SessionTimerConfig `toml:"session_timer"`
 	LinesChanged LinesChangedConfig `toml:"lines_changed"`
 	Usage        UsageConfig        `toml:"usage"`
+	Version      VersionConfig      `toml:"version"`
 }
 
 // Threshold defines a conditional style based on a numeric value.
@@ -86,6 +87,13 @@ type LinesChangedConfig struct {
 	Disabled     bool   `toml:"disabled"`
 }
 
+// VersionConfig holds version module settings.
+type VersionConfig struct {
+	Format   string `toml:"format"`
+	Style    string `toml:"style"`
+	Disabled bool   `toml:"disabled"`
+}
+
 // UsageConfig holds usage module settings.
 type UsageConfig struct {
 	Format     string      `toml:"format"`
@@ -110,6 +118,7 @@ const (
 
 // Default returns a Config with hardcoded default values.
 //
+//nolint:funlen // single-struct initializer reads best as one block
 func Default() Config {
 	return Config{
 		Preset: "default",
@@ -159,6 +168,11 @@ func Default() Config {
 			AddedStyle:   "green",
 			RemovedStyle: "red",
 			Disabled:     true,
+		},
+		Version: VersionConfig{
+			Format:   `v{{.Version}}`,
+			Style:    "dim",
+			Disabled: true,
 		},
 		Usage: UsageConfig{
 			Format:   `{{.BlockBar}} {{printf "%.0f" .BlockPct}}% W:{{printf "%.0f" .WeeklyPct}}%`,
@@ -283,7 +297,13 @@ format = "$directory | $git_branch | $model | $cost | $context"
 # Template fields: Branch, InWorktree, IsDirty, IsClean,
 #   Staged, Modified, Untracked, Ahead, Behind, Conflicts
 
-# Disabled by default. Set disabled = false and add to format string to enable.
+# Disabled by default. Set disabled = false and add the module to format string to enable.
+
+# [version]
+# disabled = false
+# format = "v{{.Version}}"
+# style = "dim"
+
 # [session_timer]
 # disabled = false
 # format = "{{if .Hours}}{{.Hours}}h{{end}}{{printf \"%02d\" .Minutes}}m{{printf \"%02d\" .Seconds}}s"
