@@ -118,6 +118,7 @@ const (
 
 // Default returns a Config with hardcoded default values.
 //
+//nolint:funlen // single-struct initializer reads best as one block
 func Default() Config {
 	return Config{
 		Preset: "default",
