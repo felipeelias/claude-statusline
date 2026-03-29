@@ -297,12 +297,13 @@ format = "$directory | $git_branch | $model | $cost | $context"
 # Template fields: Branch, InWorktree, IsDirty, IsClean,
 #   Staged, Modified, Untracked, Ahead, Behind, Conflicts
 
-# Disabled by default. Set disabled = false and add $module_name to format string to enable.
+# Disabled by default. Set disabled = false and add the module to format string to enable.
 
 # [version]
 # disabled = false
 # format = "v{{.Version}}"
 # style = "dim"
+
 # [session_timer]
 # disabled = false
 # format = "{{if .Hours}}{{.Hours}}h{{end}}{{printf \"%02d\" .Minutes}}m{{printf \"%02d\" .Seconds}}s"

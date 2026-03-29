@@ -151,6 +151,9 @@ func powerlineConfig(preset string, format string, segFg string, colors [5]strin
 				{Above: usageHighThreshold, Style: segStyle(thresholds.high, colors[4])},
 			},
 		},
+		Version: VersionConfig{
+			Format: `v{{.Version}}`, Style: "dim", Disabled: true,
+		},
 	}
 }
 
