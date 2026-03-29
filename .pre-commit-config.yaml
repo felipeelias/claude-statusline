@@ -10,4 +10,4 @@ repos:
         entry: go test ./...
         language: system
         pass_filenames: false
-        types: [go]
+        always_run: true
