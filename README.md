@@ -112,6 +112,7 @@ style = "fg:#11111b bg:#cba6f7 bold"
 | `lines_changed` | off | Lines added/removed |
 | `usage` | off | Plan usage limits (5-hour block and weekly) |
 | `vim_mode` | off | Vim mode indicator (NORMAL, INSERT, etc.) |
+| `agent_name` | off | Agent name when running with `--agent` |
 
 ### Enabling modules
 
