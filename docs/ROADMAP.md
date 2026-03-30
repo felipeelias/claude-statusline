@@ -81,38 +81,7 @@ style = "dim"
 
 ---
 
-### 3. Model name formatting options
-
-The model module currently exposes `{{.DisplayName}}` from the JSON payload. Add `{{.ID}}` (the raw model ID) and a `{{.Short}}` field that extracts a compact name from the model ID.
-
-**New template fields on model module:**
-
-| Field              | Type   | Description                                       |
-| ------------------ | ------ | ------------------------------------------------- |
-| `{{.ID}}`          | string | Raw model ID (e.g., `claude-sonnet-4-6-20250514`) |
-| `{{.Short}}`       | string | Compact extracted name (e.g., `Sonnet 4.6`)       |
-| `{{.DisplayName}}` | string | Display name from Claude Code (existing)          |
-
-**Short name extraction:**
-
-Parse the model ID with a regex pattern like `claude-(opus|sonnet|haiku)-(\d+)-(\d+)` to extract family and version. Map to `"Family X.Y"` format:
-
-- `claude-sonnet-4-6-20250514` -> `Sonnet 4.6`
-- `claude-opus-4-6-20250514` -> `Opus 4.6`
-- `claude-haiku-4-5-20251001` -> `Haiku 4.5`
-
-If the regex doesn't match (unknown model), fall back to `DisplayName`.
-
-**Default format:** Keep `{{.DisplayName}}` as default. Users who prefer the compact name use:
-
-```toml
-[model]
-format = "{{.Short}}"
-```
-
----
-
-### 4. Charset toggle (Nerd Font / text fallback)
+### 3. Charset toggle (Nerd Font / text fallback)
 
 Add a top-level `charset` config field that controls whether icon characters use Nerd Font glyphs or plain ASCII/text fallbacks. This affects the default format templates for modules that use icons (git_branch, powerline separators).
 
@@ -147,7 +116,7 @@ charset = "nerd-font"
 
 ---
 
-### 5. Output style module
+### 4. Output style module
 
 A new `output_style` module that shows Claude Code's current output style. The `output_style.name` field is confirmed present in the JSON payload.
 
@@ -179,7 +148,7 @@ disabled = true
 
 ---
 
-### 6. Clickable hyperlinks (OSC 8)
+### 5. Clickable hyperlinks (OSC 8)
 
 Add OSC 8 terminal hyperlink support to modules where it makes sense:
 
@@ -222,7 +191,7 @@ hyperlink_url_template = "vscode://file{{.AbsPath}}"
 
 ---
 
-### 7. Session name module
+### 6. Session name module
 
 A new `session_name` module that shows the session's custom title (set via `/rename` in Claude Code). The session name is stored in the transcript JSONL file as a `custom-title` entry.
 
@@ -271,7 +240,7 @@ disabled = true
 
 ---
 
-### 8. Vim mode module
+### 7. Vim mode module
 
 A new `vim_mode` module that shows the current vim editor mode when vim mode is enabled in Claude Code. The `vim.mode` field is in the JSON payload.
 
@@ -304,7 +273,7 @@ disabled = true
 
 ---
 
-### 9. Agent name module
+### 8. Agent name module
 
 A new `agent_name` module that shows the agent name when running with `--agent` or agent settings. The `agent.name` field is in the JSON payload.
 
@@ -337,7 +306,7 @@ disabled = true
 
 ---
 
-### 10. Token counts module
+### 9. Token counts module
 
 A new `tokens` module that shows token usage statistics from the JSON payload. Exposes cumulative totals, current context usage, and cache metrics.
 
@@ -395,7 +364,7 @@ format = "{{.TotalInput}}in {{.TotalOutput}}out | cache {{.CacheRead}}r {{.Cache
 
 ---
 
-### 11. Worktree details module
+### 10. Worktree details module
 
 Expand the current worktree support from a simple boolean indicator on `git_branch` to a dedicated `worktree` module with full details. The JSON payload includes `worktree.name`, `worktree.path`, `worktree.branch`, `worktree.original_cwd`, and `worktree.original_branch`.
 
@@ -433,7 +402,7 @@ disabled = true
 
 ---
 
-### 12. PR links module
+### 11. PR links module
 
 A new `pr` module that shows PRs created during the current session. PR data is stored in the transcript JSONL file as `pr-link` entries.
 
@@ -502,7 +471,7 @@ format = "{{if .Count}}{{.Count}} PRs{{end}}"
 
 ---
 
-### 13. Project directory module
+### 12. Project directory module
 
 A new `project_dir` module that shows the project directory where Claude Code was launched. This differs from `cwd` when the working directory changes during a session (e.g., via `cd` or worktree).
 
@@ -540,7 +509,7 @@ disabled = true
 
 ## Priority: Medium
 
-### 14. Timeout for git subprocess calls
+### 13. Timeout for git subprocess calls
 
 The `git_branch` module runs `git status --porcelain=v2 --branch` (detailed mode) or `git rev-parse --abbrev-ref HEAD` (simple mode) without a timeout. On network-mounted repos or hung git processes, this could block the status line indefinitely.
 
@@ -550,7 +519,7 @@ Replace `exec.Command` with `exec.CommandContext` using a `context.WithTimeout` 
 
 ---
 
-### 15. Multi-line layout
+### 14. Multi-line layout
 
 Allow the format string to define multiple lines using `\n` as a line separator. Claude Code's status line natively supports multiple output lines — each `echo`/line in the output becomes a separate row.
 
@@ -576,7 +545,7 @@ Line 2: $0.42 | ███░░ 60% | 05m23s
 
 ---
 
-### 16. Flex separator
+### 15. Flex separator
 
 A special token `$fill` in the format string that expands to fill available terminal width, enabling right-aligned segments.
 
@@ -602,7 +571,7 @@ This would render:
 
 ---
 
-### 17. Message count module
+### 16. Message count module
 
 A new `messages` module that shows the number of user and assistant messages in the current session. Reads from the transcript JSONL file.
 
@@ -637,7 +606,7 @@ disabled = true
 
 ---
 
-### 18. Exceeds 200k indicator
+### 17. Exceeds 200k indicator
 
 Add a `{{.Exceeds200k}}` boolean field to the context module that is true when `exceeds_200k_tokens` is true in the JSON payload. This warns when the last API response exceeded 200k total tokens.
 
@@ -660,7 +629,7 @@ format = '{{.Bar}} {{printf "%.0f" .UsedPct}}%{{if .Exceeds200k}} LARGE{{end}}'
 
 ## Priority: Low
 
-### 19. Skills / hooks tracking
+### 18. Skills / hooks tracking
 
 Track which Claude Code tools/skills are invoked during a session by integrating with Claude Code hooks.
 
