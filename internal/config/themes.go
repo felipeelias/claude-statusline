@@ -154,6 +154,9 @@ func powerlineConfig(preset string, format string, segFg string, colors [5]strin
 		Version: VersionConfig{
 			Format: `v{{.Version}}`, Style: "dim", Disabled: true,
 		},
+		VimMode: VimModeConfig{
+			Format: "{{.Mode}}", Style: "bold yellow", Disabled: true,
+		},
 	}
 }
 

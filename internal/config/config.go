@@ -21,6 +21,7 @@ type Config struct {
 	LinesChanged LinesChangedConfig `toml:"lines_changed"`
 	Usage        UsageConfig        `toml:"usage"`
 	Version      VersionConfig      `toml:"version"`
+	VimMode      VimModeConfig      `toml:"vim_mode"`
 }
 
 // Threshold defines a conditional style based on a numeric value.
@@ -106,6 +107,13 @@ type UsageConfig struct {
 	Thresholds []Threshold `toml:"thresholds"`
 }
 
+// VimModeConfig holds vim mode module settings.
+type VimModeConfig struct {
+	Format   string `toml:"format"`
+	Style    string `toml:"style"`
+	Disabled bool   `toml:"disabled"`
+}
+
 const (
 	defaultTruncationLength = 3
 	defaultBarWidth = 5
@@ -183,6 +191,11 @@ func Default() Config {
 				{Above: usageWarnThreshold, Style: "yellow"},
 				{Above: usageHighThreshold, Style: "red"},
 			},
+		},
+		VimMode: VimModeConfig{
+			Format:   "{{.Mode}}",
+			Style:    "bold yellow",
+			Disabled: true,
 		},
 	}
 }
@@ -331,6 +344,12 @@ format = "$directory | $git_branch | $model | $cost | $context"
 #   { above = 90, style = "red" },
 # ]
 # Template fields: BlockPct, WeeklyPct, BlockBar, WeeklyBar, BlockResets, WeeklyResets
+
+# [vim_mode]
+# disabled = false
+# format = "{{.Mode}}"
+# style = "bold yellow"
+# Template fields: Mode (e.g. "NORMAL", "INSERT")
 `
 
 // SampleConfig returns a commented TOML config template for the init command.

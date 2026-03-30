@@ -111,6 +111,7 @@ style = "fg:#11111b bg:#cba6f7 bold"
 | `session_timer` | off | Session elapsed time |
 | `lines_changed` | off | Lines added/removed |
 | `usage` | off | Plan usage limits (5-hour block and weekly) |
+| `vim_mode` | off | Vim mode indicator (NORMAL, INSERT, etc.) |
 
 ### Enabling modules
 
@@ -170,6 +171,25 @@ format = '{{if ge .BlockPct 70.0}}{{.BlockBar}} {{printf "%.0f" .BlockPct}}%{{en
 ```
 
 The module renders empty if `rate_limits` is not present in the Claude Code payload (older versions).
+
+### Vim mode module
+
+The `vim_mode` module shows the current vim editor mode when vim mode is enabled in Claude Code.
+
+```toml
+format = "$vim_mode | $directory | $git_branch | $model | $cost | $context"
+
+[vim_mode]
+disabled = false
+```
+
+Template fields:
+
+| Field | Description |
+|-------|-------------|
+| `{{.Mode}}` | Current vim mode (e.g. `NORMAL`, `INSERT`) |
+
+The module renders empty if vim mode is not enabled or the mode string is empty.
 
 ## Style system
 
