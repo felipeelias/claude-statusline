@@ -52,7 +52,30 @@ func (GitBranchModule) Render(data input.Data, cfg config.Config) (string, error
 		return "", err
 	}
 
+	result = gitBranchHyperlink(result, templateData.Branch, data.Cwd, cfg.GitBranch)
+
 	return wrapStyle(result, cfg.GitBranch.Style), nil
+}
+
+// gitBranchHyperlink wraps text in an OSC 8 hyperlink to the branch on the remote.
+// Returns text unchanged if hyperlink is disabled or no base URL can be determined.
+func gitBranchHyperlink(text, branch, cwd string, cfg config.GitBranchConfig) string {
+	if !cfg.Hyperlink {
+		return text
+	}
+
+	baseURL := cfg.HyperlinkBaseURL
+	if baseURL == "" {
+		baseURL = GitRemoteToHTTPS(gitRemoteURL(cwd))
+	}
+
+	if baseURL == "" {
+		return text
+	}
+
+	linkURL := strings.TrimSuffix(baseURL, "/") + "/tree/" + branch
+
+	return WrapHyperlink(linkURL, text)
 }
 
 type gitBranchTemplateData struct {

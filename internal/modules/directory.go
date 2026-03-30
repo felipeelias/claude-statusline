@@ -1,8 +1,10 @@
 package modules
 
 import (
+	"bytes"
 	"os"
 	"strings"
+	"text/template"
 
 	"github.com/felipeelias/claude-statusline/internal/config"
 	"github.com/felipeelias/claude-statusline/internal/input"
@@ -57,6 +59,11 @@ func (m DirectoryModule) Render(data input.Data, cfg config.Config) (string, err
 		return "", err
 	}
 
+	if cfg.Directory.Hyperlink {
+		linkURL := resolveDirectoryHyperlink(cfg.Directory.HyperlinkURLTemplate, cwd)
+		result = WrapHyperlink(linkURL, result)
+	}
+
 	return wrapStyle(result, cfg.Directory.Style), nil
 }
 
@@ -103,4 +110,27 @@ func splitPathPrefix(path string) (string, string) {
 	}
 
 	return "", path
+}
+
+// resolveDirectoryHyperlink executes the URL template with the absolute path.
+// Returns empty string if the template is empty or fails to execute.
+func resolveDirectoryHyperlink(urlTemplate, absPath string) string {
+	if urlTemplate == "" {
+		return ""
+	}
+
+	tmpl, err := template.New("hyperlink_url").Parse(urlTemplate)
+	if err != nil {
+		return ""
+	}
+
+	data := struct{ AbsPath string }{AbsPath: absPath}
+
+	var buf bytes.Buffer
+	err = tmpl.Execute(&buf, data)
+	if err != nil {
+		return ""
+	}
+
+	return buf.String()
 }
