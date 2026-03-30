@@ -265,6 +265,7 @@ format = "$directory | $git_branch | $model | $cost | $context"
 # [model]
 # format = "{{.DisplayName}}"
 # style = "bold"
+# Template fields: DisplayName, ID, Short (e.g. "Sonnet 4.6")
 
 # [directory]
 # format = "{{.Dir}}"

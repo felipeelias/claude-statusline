@@ -105,7 +105,7 @@ style = "fg:#11111b bg:#cba6f7 bold"
 |--------|---------|-------------|
 | `directory` | on | Current directory (tilde-collapsed, truncated) |
 | `git_branch` | on | Git branch with status indicators (dirty, ahead/behind, worktree) |
-| `model` | on | Model display name |
+| `model` | on | Model name (display name, short name, or raw ID) |
 | `cost` | on | Session cost in USD |
 | `context` | on | Context window usage with progress bar |
 | `session_timer` | off | Session elapsed time |
@@ -121,6 +121,22 @@ format = "$directory | $git_branch | $model | $cost | $context | $session_timer"
 
 [session_timer]
 disabled = false
+```
+
+### Model module
+
+Template fields:
+
+| Field | Description | Example |
+|-------|-------------|---------|
+| `{{.DisplayName}}` | Display name from Claude Code (default) | `Claude Sonnet 4.6` |
+| `{{.Short}}` | Compact name extracted from model ID | `Sonnet 4.6` |
+| `{{.ID}}` | Raw model ID | `claude-sonnet-4-6-20250514` |
+
+```toml
+[model]
+format = "{{.Short}}"
+style = "bold"
 ```
 
 ### Usage module
