@@ -8,7 +8,7 @@ import (
 	"github.com/felipeelias/claude-statusline/internal/input"
 )
 
-var modelIDPattern = regexp.MustCompile(`claude-(opus|sonnet|haiku)-(\d+)-(\d+)`)
+var modelIDPattern = regexp.MustCompile(`^claude-(opus|sonnet|haiku)-(\d+)-(\d+)(?:-\d+)?$`)
 
 // ShortName extracts a compact name from a model ID (e.g. "Sonnet 4.6").
 // Falls back to displayName if the ID doesn't match the expected pattern.

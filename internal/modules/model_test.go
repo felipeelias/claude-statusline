@@ -28,6 +28,8 @@ func TestShortName(t *testing.T) {
 		{"no date suffix", "claude-sonnet-4-6", "Claude Sonnet 4.6", "Sonnet 4.6"},
 		{"unknown model falls back", "gpt-4o", "GPT-4o", "GPT-4o"},
 		{"empty id falls back", "", "Some Model", "Some Model"},
+		{"prefix mismatch falls back", "xclaude-sonnet-4-6", "X", "X"},
+		{"suffix mismatch falls back", "claude-sonnet-4-6-foo", "X", "X"},
 	}
 
 	for _, tt := range tests {
