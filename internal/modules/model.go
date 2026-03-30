@@ -30,7 +30,7 @@ func (ModelModule) Name() string { return "model" }
 
 func (ModelModule) Render(data input.Data, cfg config.Config) (string, error) {
 	displayName := data.Model.DisplayName
-	if displayName == "" {
+	if displayName == "" && data.Model.ID == "" {
 		return "", nil
 	}
 

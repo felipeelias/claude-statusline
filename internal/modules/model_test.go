@@ -57,17 +57,30 @@ func TestModelModule_Render(t *testing.T) {
 		assert.Contains(t, result, "\033[0m")
 	})
 
-	t.Run("empty display name returns empty string", func(t *testing.T) {
+	t.Run("empty display name and ID returns empty string", func(t *testing.T) {
 		data := input.Data{
-			Model: input.Model{
-				ID:          "claude-opus-4",
-				DisplayName: "",
-			},
+			Model: input.Model{},
 		}
 
 		result, err := modules.ModelModule{}.Render(data, cfg)
 		require.NoError(t, err)
 		assert.Empty(t, result)
+	})
+
+	t.Run("empty display name with ID renders via ID format", func(t *testing.T) {
+		customCfg := config.Default()
+		customCfg.Model.Format = "{{.ID}}"
+
+		data := input.Data{
+			Model: input.Model{
+				ID:          "claude-sonnet-4-6-20250514",
+				DisplayName: "",
+			},
+		}
+
+		result, err := modules.ModelModule{}.Render(data, customCfg)
+		require.NoError(t, err)
+		assert.Contains(t, result, "claude-sonnet-4-6-20250514")
 	})
 
 	t.Run("custom format template", func(t *testing.T) {
