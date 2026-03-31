@@ -160,6 +160,9 @@ func powerlineConfig(preset string, format string, segFg string, colors [5]strin
 		VimMode: VimModeConfig{
 			Format: "{{.Mode}}", Style: "bold yellow", Disabled: true,
 		},
+		AgentName: AgentNameConfig{
+			Format: "{{.Name}}", Style: "bold magenta", Disabled: true,
+		},
 	}
 }
 

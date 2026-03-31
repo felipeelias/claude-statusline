@@ -22,6 +22,7 @@ type Config struct {
 	Usage        UsageConfig        `toml:"usage"`
 	Version      VersionConfig      `toml:"version"`
 	VimMode      VimModeConfig      `toml:"vim_mode"`
+	AgentName    AgentNameConfig    `toml:"agent_name"`
 }
 
 // Threshold defines a conditional style based on a numeric value.
@@ -94,6 +95,13 @@ type LinesChangedConfig struct {
 
 // VersionConfig holds version module settings.
 type VersionConfig struct {
+	Format   string `toml:"format"`
+	Style    string `toml:"style"`
+	Disabled bool   `toml:"disabled"`
+}
+
+// AgentNameConfig holds agent name module settings.
+type AgentNameConfig struct {
 	Format   string `toml:"format"`
 	Style    string `toml:"style"`
 	Disabled bool   `toml:"disabled"`
@@ -200,6 +208,11 @@ func Default() Config {
 		VimMode: VimModeConfig{
 			Format:   "{{.Mode}}",
 			Style:    "bold yellow",
+			Disabled: true,
+		},
+		AgentName: AgentNameConfig{
+			Format:   "{{.Name}}",
+			Style:    "bold magenta",
 			Disabled: true,
 		},
 	}
@@ -337,6 +350,12 @@ format = "$directory | $git_branch | $model | $cost | $context"
 # format = "+{{.Added}} -{{.Removed}}"
 # added_style = "green"
 # removed_style = "red"
+
+# [agent_name]
+# disabled = false
+# format = "{{.Name}}"
+# style = "bold magenta"
+# Template fields: Name (e.g. "security-reviewer")
 
 # Requires Claude Code 2.1.80+ which provides rate_limits in the status line payload.
 # Add $usage to your format string to display it.

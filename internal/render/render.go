@@ -91,5 +91,6 @@ func buildRegistry(cfg config.Config) map[string]moduleEntry {
 		"usage":         {module: modules.UsageModule{}, disabled: cfg.Usage.Disabled},
 		"version":       {module: modules.VersionModule{}, disabled: cfg.Version.Disabled},
 		"vim_mode":      {module: modules.VimModeModule{}, disabled: cfg.VimMode.Disabled},
+		"agent_name":    {module: modules.AgentNameModule{}, disabled: cfg.AgentName.Disabled},
 	}
 }
