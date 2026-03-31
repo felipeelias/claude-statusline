@@ -97,6 +97,8 @@ func segStyle(segFg string, bgColor string) string {
 
 // powerlineConfig builds a powerline-style Config with the given format and colors.
 // Pass segFg="" to use terminal default foreground (like Starship's Pastel Powerline).
+//
+//nolint:funlen // single-struct initializer reads best as one block
 func powerlineConfig(preset string, format string, segFg string, colors [5]string, thresholds thresholdColors) Config {
 	return Config{
 		Preset: preset,
@@ -154,6 +156,9 @@ func powerlineConfig(preset string, format string, segFg string, colors [5]strin
 		},
 		Version: VersionConfig{
 			Format: `v{{.Version}}`, Style: "dim", Disabled: true,
+		},
+		VimMode: VimModeConfig{
+			Format: "{{.Mode}}", Style: "bold yellow", Disabled: true,
 		},
 	}
 }
