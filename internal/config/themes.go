@@ -103,7 +103,8 @@ func powerlineConfig(preset string, format string, segFg string, colors [5]strin
 		Format: format,
 		Directory: DirectoryConfig{
 			Format: " {{.Dir}} ", Style: segStyle(segFg, colors[0]),
-			TruncationLength: defaultTruncationLength,
+			TruncationLength:     defaultTruncationLength,
+			HyperlinkURLTemplate: "file://{{.AbsPathEncoded}}",
 		},
 		GitBranch: GitBranchConfig{
 			Format: " " + iconBranch + " {{.Branch}}" +

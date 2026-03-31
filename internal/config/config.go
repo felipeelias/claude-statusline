@@ -135,7 +135,7 @@ func Default() Config {
 			Format:               "{{.Dir}}",
 			Style:                "cyan",
 			TruncationLength:     defaultTruncationLength,
-			HyperlinkURLTemplate: "file://{{.AbsPath}}",
+			HyperlinkURLTemplate: "file://{{.AbsPathEncoded}}",
 		},
 		Cost: CostConfig{
 			Format: `${{printf "%.2f" .TotalCostUSD}}`,
@@ -277,7 +277,7 @@ format = "$directory | $git_branch | $model | $cost | $context"
 # style = "cyan"
 # truncation_length = 3
 # hyperlink = false
-# hyperlink_url_template = "file://{{.AbsPath}}"  # or "vscode://file{{.AbsPath}}"
+# hyperlink_url_template = "file://{{.AbsPathEncoded}}"  # or "vscode://file{{.AbsPath}}"
 
 # [cost]
 # format = '${{printf "%.2f" .TotalCostUSD}}'

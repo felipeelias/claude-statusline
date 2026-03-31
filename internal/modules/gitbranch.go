@@ -73,9 +73,7 @@ func gitBranchHyperlink(text, branch, cwd string, cfg config.GitBranchConfig) st
 		return text
 	}
 
-	linkURL := strings.TrimSuffix(baseURL, "/") + "/tree/" + branch
-
-	return WrapHyperlink(linkURL, text)
+	return WrapHyperlink(BranchURL(baseURL, branch), text)
 }
 
 type gitBranchTemplateData struct {

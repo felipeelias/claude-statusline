@@ -2,6 +2,7 @@ package modules
 
 import (
 	"bytes"
+	"net/url"
 	"os"
 	"strings"
 	"text/template"
@@ -124,7 +125,13 @@ func resolveDirectoryHyperlink(urlTemplate, absPath string) string {
 		return ""
 	}
 
-	data := struct{ AbsPath string }{AbsPath: absPath}
+	data := struct {
+		AbsPath        string
+		AbsPathEncoded string
+	}{
+		AbsPath:        absPath,
+		AbsPathEncoded: (&url.URL{Path: absPath}).EscapedPath(),
+	}
 
 	var buf bytes.Buffer
 	err = tmpl.Execute(&buf, data)

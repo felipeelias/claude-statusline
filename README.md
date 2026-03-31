@@ -177,7 +177,13 @@ Modules can wrap their output in [OSC 8 terminal hyperlinks](https://gist.github
 
 ### git_branch
 
-When enabled, the branch name links to the branch page on GitHub/GitLab/Bitbucket. The base URL is auto-detected from `git remote get-url origin`.
+When enabled, the branch name becomes a clickable link to the branch page on the remote. The base URL is auto-detected from `git remote get-url origin`, and the branch path pattern is selected based on the host:
+
+- **GitHub** (default): `/tree/<branch>`
+- **GitLab** (hosts containing "gitlab"): `/-/tree/<branch>`
+- **Bitbucket** (hosts containing "bitbucket"): `/src/<branch>`
+
+Branch names are percent-encoded so characters like `#` don't break the URL.
 
 ```toml
 [git_branch]
@@ -187,12 +193,16 @@ hyperlink = true
 
 ### directory
 
-When enabled, the directory text links to the path using a configurable URL template. The default opens `file://` URLs; set `hyperlink_url_template` for VS Code or other editors.
+When enabled, the directory text links to the path using a configurable URL template. The default opens `file://` URLs with properly encoded paths; set `hyperlink_url_template` for VS Code or other editors.
+
+Template fields:
+- `{{.AbsPathEncoded}}` — percent-encoded absolute path (use for URLs)
+- `{{.AbsPath}}` — raw absolute path (use for schemes that handle raw paths, like `vscode://`)
 
 ```toml
 [directory]
 hyperlink = true
-# hyperlink_url_template = "file://{{.AbsPath}}"         # default
+# hyperlink_url_template = "file://{{.AbsPathEncoded}}"  # default
 # hyperlink_url_template = "vscode://file{{.AbsPath}}"   # open in VS Code
 ```
 
