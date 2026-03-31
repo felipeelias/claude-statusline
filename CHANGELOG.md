@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.9.0](https://github.com/felipeelias/claude-statusline/compare/v0.8.0...v0.9.0) (2026-03-31)
+
+
+### Features
+
+* add agent_name module ([#25](https://github.com/felipeelias/claude-statusline/issues/25)) ([e7118e9](https://github.com/felipeelias/claude-statusline/commit/e7118e952e4b4ccd60191261d0ba592bd8a8c82b))
+* add model name formatting options ([#22](https://github.com/felipeelias/claude-statusline/issues/22)) ([cbae790](https://github.com/felipeelias/claude-statusline/commit/cbae7902cdab42e20bf1ac1b5d1217d57122817b))
+* add OSC 8 clickable hyperlinks for git_branch and directory ([#26](https://github.com/felipeelias/claude-statusline/issues/26)) ([9b7f3af](https://github.com/felipeelias/claude-statusline/commit/9b7f3aff19c30668d64c4676d9696ed8109cb8dd))
+* add vim_mode module ([#24](https://github.com/felipeelias/claude-statusline/issues/24)) ([b2e5807](https://github.com/felipeelias/claude-statusline/commit/b2e5807a4c9b7dd68b5d9c8f8ad5cecd98268962))
+
 ## [0.8.0](https://github.com/felipeelias/claude-statusline/compare/v0.7.0...v0.8.0) (2026-03-29)
 
 
