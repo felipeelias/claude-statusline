@@ -2,7 +2,6 @@ package modules
 
 import (
 	"net/url"
-	"os/exec"
 	"regexp"
 	"strings"
 )
@@ -82,12 +81,5 @@ func encodeBranchPath(branch string) string {
 // gitRemoteURL runs git remote get-url origin in the given directory.
 // Returns empty string if the command fails or git is not available.
 func gitRemoteURL(cwd string) string {
-	//nolint:noctx // no context available in module interface
-	cmd := exec.Command("git", "-C", cwd, "remote", "get-url", "origin")
-	out, err := cmd.Output()
-	if err != nil {
-		return ""
-	}
-
-	return strings.TrimSpace(string(out))
+	return runGit(cwd, "remote", "get-url", "origin")
 }
