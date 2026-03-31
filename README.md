@@ -191,6 +191,41 @@ Template fields:
 
 The module renders empty if vim mode is not enabled or the mode string is empty.
 
+## Clickable hyperlinks (OSC 8)
+
+Modules can wrap their output in [OSC 8 terminal hyperlinks](https://gist.github.com/egmontkob/eb114294efbcd5adb1944c9f3cb5feda), making text clickable in supported terminals.
+
+### git_branch
+
+When enabled, the branch name becomes a clickable link to the branch page on the remote. The base URL is auto-detected from `git remote get-url origin`, and the branch path pattern is selected based on the host:
+
+- **GitHub** (default): `/tree/<branch>`
+- **GitLab** (hosts containing "gitlab"): `/-/tree/<branch>`
+- **Bitbucket** (hosts containing "bitbucket"): `/src/<branch>`
+
+Branch names are percent-encoded so characters like `#` don't break the URL.
+
+```toml
+[git_branch]
+hyperlink = true
+# hyperlink_base_url = "https://github.com/owner/repo"  # override auto-detection
+```
+
+### directory
+
+When enabled, the directory text links to the path using a configurable URL template. The default opens `file://` URLs with properly encoded paths; set `hyperlink_url_template` for VS Code or other editors.
+
+Template fields:
+- `{{.AbsPathEncoded}}` — percent-encoded absolute path (use for URLs)
+- `{{.AbsPath}}` — raw absolute path (use for schemes that handle raw paths, like `vscode://`)
+
+```toml
+[directory]
+hyperlink = true
+# hyperlink_url_template = "file://{{.AbsPathEncoded}}"  # default
+# hyperlink_url_template = "vscode://file{{.AbsPath}}"   # open in VS Code
+```
+
 ## Style system
 
 Modules support a `style` field that accepts several formats:

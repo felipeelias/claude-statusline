@@ -39,10 +39,12 @@ type ModelConfig struct {
 
 // DirectoryConfig holds directory module settings.
 type DirectoryConfig struct {
-	Format           string `toml:"format"`
-	Style            string `toml:"style"`
-	Disabled         bool   `toml:"disabled"`
-	TruncationLength int    `toml:"truncation_length"`
+	Format               string `toml:"format"`
+	Style                string `toml:"style"`
+	Disabled             bool   `toml:"disabled"`
+	TruncationLength     int    `toml:"truncation_length"`
+	Hyperlink            bool   `toml:"hyperlink"`
+	HyperlinkURLTemplate string `toml:"hyperlink_url_template"`
 }
 
 // CostConfig holds cost module settings.
@@ -67,10 +69,12 @@ type ContextConfig struct {
 
 // GitBranchConfig holds git branch module settings.
 type GitBranchConfig struct {
-	Format   string `toml:"format"`
-	Style    string `toml:"style"`
-	Disabled bool   `toml:"disabled"`
-	Mode     string `toml:"mode"` // "detailed" (default) or "simple"
+	Format           string `toml:"format"`
+	Style            string `toml:"style"`
+	Disabled         bool   `toml:"disabled"`
+	Mode             string `toml:"mode"` // "detailed" (default) or "simple"
+	Hyperlink        bool   `toml:"hyperlink"`
+	HyperlinkBaseURL string `toml:"hyperlink_base_url"`
 }
 
 // SessionTimerConfig holds session timer module settings.
@@ -136,9 +140,10 @@ func Default() Config {
 			Style:  "bold",
 		},
 		Directory: DirectoryConfig{
-			Format:           "{{.Dir}}",
-			Style:            "cyan",
-			TruncationLength: defaultTruncationLength,
+			Format:               "{{.Dir}}",
+			Style:                "cyan",
+			TruncationLength:     defaultTruncationLength,
+			HyperlinkURLTemplate: "file://{{.AbsPathEncoded}}",
 		},
 		Cost: CostConfig{
 			Format: `${{printf "%.2f" .TotalCostUSD}}`,
@@ -284,6 +289,8 @@ format = "$directory | $git_branch | $model | $cost | $context"
 # format = "{{.Dir}}"
 # style = "cyan"
 # truncation_length = 3
+# hyperlink = false
+# hyperlink_url_template = "file://{{.AbsPathEncoded}}"  # or "vscode://file{{.AbsPath}}"
 
 # [cost]
 # format = '${{printf "%.2f" .TotalCostUSD}}'
@@ -308,6 +315,8 @@ format = "$directory | $git_branch | $model | $cost | $context"
 # [git_branch]
 # mode = "detailed"  # "detailed" (default) or "simple" (fast, branch only)
 # style = "cyan"
+# hyperlink = false
+# hyperlink_base_url = ""  # auto-detected from git remote; set to override
 # Template fields: Branch, InWorktree, IsDirty, IsClean,
 #   Staged, Modified, Untracked, Ahead, Behind, Conflicts
 

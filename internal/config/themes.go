@@ -97,13 +97,16 @@ func segStyle(segFg string, bgColor string) string {
 
 // powerlineConfig builds a powerline-style Config with the given format and colors.
 // Pass segFg="" to use terminal default foreground (like Starship's Pastel Powerline).
+//
+//nolint:funlen // single-struct initializer reads best as one block
 func powerlineConfig(preset string, format string, segFg string, colors [5]string, thresholds thresholdColors) Config {
 	return Config{
 		Preset: preset,
 		Format: format,
 		Directory: DirectoryConfig{
 			Format: " {{.Dir}} ", Style: segStyle(segFg, colors[0]),
-			TruncationLength: defaultTruncationLength,
+			TruncationLength:     defaultTruncationLength,
+			HyperlinkURLTemplate: "file://{{.AbsPathEncoded}}",
 		},
 		GitBranch: GitBranchConfig{
 			Format: " " + iconBranch + " {{.Branch}}" +
