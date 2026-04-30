@@ -135,6 +135,10 @@ func powerlineConfig(preset string, format string, segFg string, colors [5]strin
 				{Above: ctxWarnThreshold, Style: segStyle(thresholds.warn, colors[4])},
 				{Above: ctxHighThreshold, Style: segStyle(thresholds.high, colors[4])},
 			},
+			BarMarkers: []BarMarker{
+				{Above: ctxMarkerWarnThreshold, Glyph: markerGlyph, Style: segStyle(thresholds.warn, colors[4])},
+				{Above: ctxMarkerHighThreshold, Glyph: markerGlyph, Style: segStyle(thresholds.high, colors[4])},
+			},
 		},
 		SessionTimer: SessionTimerConfig{
 			Format:   " {{if .Hours}}{{.Hours}}h{{end}}{{printf \"%02d\" .Minutes}}m{{printf \"%02d\" .Seconds}}s ",
