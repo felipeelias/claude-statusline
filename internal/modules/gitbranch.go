@@ -1,9 +1,6 @@
 package modules
 
 import (
-	"os/exec"
-	"strings"
-
 	"github.com/felipeelias/claude-statusline/internal/config"
 	"github.com/felipeelias/claude-statusline/internal/input"
 )
@@ -92,25 +89,16 @@ type gitBranchTemplateData struct {
 // gitBranchSimple runs git rev-parse to get the current branch name.
 // Returns empty string if the directory is not a git repo or git is not installed.
 func gitBranchSimple(cwd string) string {
-	//nolint:noctx // no context available in module interface
-	cmd := exec.Command("git", "-C", cwd, "rev-parse", "--abbrev-ref", "HEAD")
-	out, err := cmd.Output()
-	if err != nil {
-		return ""
-	}
-
-	return strings.TrimSpace(string(out))
+	return runGit(cwd, "rev-parse", "--abbrev-ref", "HEAD")
 }
 
 // gitStatusDetailed runs git status --porcelain=v2 --branch and parses the output.
 // Returns zero-value GitStatus if the directory is not a git repo or git is not installed.
 func gitStatusDetailed(cwd string) GitStatus {
-	//nolint:noctx // no context available in module interface
-	cmd := exec.Command("git", "-C", cwd, "status", "--porcelain=v2", "--branch")
-	out, err := cmd.Output()
-	if err != nil {
+	out := runGit(cwd, "status", "--porcelain=v2", "--branch")
+	if out == "" {
 		return GitStatus{}
 	}
 
-	return ParsePorcelainV2(string(out))
+	return ParsePorcelainV2(out)
 }
