@@ -35,6 +35,6 @@ jobs:
           go-version-file: go.mod
       - name: Check go mod tidy
         run: go mod tidy && git diff --exit-code go.mod go.sum
-      - uses: golangci/golangci-lint-action@82606bf257cbaff209d206a39f5134f0cfbfd2ee # v9
+      - uses: golangci/golangci-lint-action@ba0d7d2ec06a0ea1cb5fa41b2e4a3ab91d21278a # v9
         with:
           version: v2.10.1
