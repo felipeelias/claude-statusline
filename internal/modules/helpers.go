@@ -2,12 +2,27 @@ package modules
 
 import (
 	"bytes"
+	"os/exec"
 	"strings"
 	"text/template"
 
 	"github.com/felipeelias/claude-statusline/internal/config"
 	"github.com/felipeelias/claude-statusline/internal/style"
 )
+
+// runGit runs a git command in the given directory and returns trimmed stdout.
+// Returns empty string if the command fails or git is not available.
+//
+//nolint:noctx // no context available in module interface
+func runGit(cwd string, args ...string) string {
+	cmd := exec.Command("git", append([]string{"-C", cwd}, args...)...)
+	out, err := cmd.Output()
+	if err != nil {
+		return ""
+	}
+
+	return strings.TrimSpace(string(out))
+}
 
 // renderTemplate executes a Go text/template with the given data and returns the result.
 func renderTemplate(name, format string, data any) (string, error) {
