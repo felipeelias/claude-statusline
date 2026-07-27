@@ -32,7 +32,8 @@ type Threshold struct {
 }
 
 // BarMarker defines a glyph rendered on either side of a progress bar when a
-// numeric value exceeds a threshold. The highest matching marker wins.
+// numeric value exceeds a threshold. Evaluated in order, last match wins, so
+// markers should be listed ascending.
 type BarMarker struct {
 	Above float64 `toml:"above"`
 	Glyph string  `toml:"glyph"`
@@ -137,7 +138,7 @@ type VimModeConfig struct {
 
 const (
 	defaultTruncationLength = 3
-	defaultBarWidth = 5
+	defaultBarWidth         = 5
 	costWarnThreshold       = 5.0
 	ctxWarnThreshold        = 50
 	ctxHighThreshold        = 90
@@ -180,7 +181,7 @@ func Default() Config {
 		Preset: "default",
 		Format: "$directory | $git_branch | $model | $cost | $context",
 		Model: ModelConfig{
-			Format: "{{.DisplayName}}",
+			Format: "{{.Name}}{{with .Details}} ({{.}}){{end}}",
 			Style:  "bold",
 		},
 		Directory: DirectoryConfig{
@@ -322,9 +323,12 @@ format = "$directory | $git_branch | $model | $cost | $context"
 # Styles: "bold", "dim", "italic", "fg:#hex", "bg:#hex", "208"
 
 # [model]
-# format = "{{.DisplayName}}"
+# format = "{{.Name}}{{with .Details}} ({{.}}){{end}}"
 # style = "bold"
-# Template fields: DisplayName, ID, Short (e.g. "Sonnet 4.6")
+# Template fields: Name (no parenthesised suffix), Context ("1m"), Effort
+# ("xhigh", empty when the model has no effort setting), Details (Context and
+# Effort joined), DisplayName (raw, e.g. "Opus 5 (1M context)"), ID,
+# Short (e.g. "Sonnet 4.6")
 
 # [directory]
 # format = "{{.Dir}}"
@@ -353,7 +357,7 @@ format = "$directory | $git_branch | $model | $cost | $context"
 #   { above = 90, style = "red" },
 # ]
 # Attention markers rendered on either side of the bar at the given thresholds.
-# The highest matching marker wins. Set to [] to disable.
+# Evaluated in order, last match wins, so list them ascending. Set [] to disable.
 # bar_markers = [
 #   { above = 20, glyph = "▲", style = "208" }, # orange
 #   { above = 30, glyph = "▲", style = "202" }, # orange-red

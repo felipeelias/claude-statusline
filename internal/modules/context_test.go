@@ -161,6 +161,43 @@ func TestContextModule_Render(t *testing.T) {
 		assert.True(t, strings.HasSuffix(result, "\033[31m▲\033[0m"))
 	})
 
+	t.Run("markers are evaluated in list order, last match wins", func(t *testing.T) {
+		cfgDescending := config.Default()
+		cfgDescending.Context.BarMarkers = []config.BarMarker{
+			{Above: 35, Glyph: "X", Style: "red"},
+			{Above: 20, Glyph: "o", Style: "208"},
+		}
+
+		data := input.Data{
+			ContextWindow: input.ContextWindow{
+				UsedPercentage: 42.0,
+			},
+		}
+
+		result, err := modules.ContextModule{}.Render(data, cfgDescending)
+		require.NoError(t, err)
+		assert.Contains(t, result, "o")
+		assert.NotContains(t, result, "X")
+	})
+
+	t.Run("marker with empty glyph is skipped", func(t *testing.T) {
+		cfgEmptyGlyph := config.Default()
+		cfgEmptyGlyph.Context.BarMarkers = []config.BarMarker{
+			{Above: 20, Glyph: "▲", Style: "208"},
+			{Above: 30, Glyph: "", Style: "red"},
+		}
+
+		data := input.Data{
+			ContextWindow: input.ContextWindow{
+				UsedPercentage: 42.0,
+			},
+		}
+
+		result, err := modules.ContextModule{}.Render(data, cfgEmptyGlyph)
+		require.NoError(t, err)
+		assert.Contains(t, result, "\033[38;5;208m▲\033[0m")
+	})
+
 	t.Run("empty bar markers list yields no marker", func(t *testing.T) {
 		cfgNoMarkers := config.Default()
 		cfgNoMarkers.Context.BarMarkers = nil
