@@ -92,8 +92,9 @@ func resolveThresholdStyle(value float64, thresholds []config.Threshold, baseSty
 	return winner
 }
 
-// resolveBarMarker picks the highest matching marker for the given value and
-// returns the styled glyph. If no marker applies, returns ("", false).
+// resolveBarMarker evaluates markers in order, mirroring resolveThresholdStyle:
+// the last marker whose Above value is below the given value wins, so markers
+// should be listed ascending. Returns ("", false) when none apply.
 func resolveBarMarker(value float64, markers []config.BarMarker) (string, bool) {
 	var (
 		winner config.BarMarker

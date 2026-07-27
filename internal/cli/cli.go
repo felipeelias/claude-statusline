@@ -189,9 +189,10 @@ func mockInput() input.Data {
 		Version:        "1.0.0",
 		Model: input.Model{
 			ID:          "claude-opus-4-20250514",
-			DisplayName: "Claude Opus 4",
+			DisplayName: "Claude Opus 4 (1M context)",
 		},
-		Cwd: cwd,
+		Effort: input.Effort{Level: "high"},
+		Cwd:    cwd,
 		Workspace: input.Workspace{
 			CurrentDir: cwd,
 			ProjectDir: cwd,
