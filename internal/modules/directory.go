@@ -41,17 +41,19 @@ func (m DirectoryModule) Render(data input.Data, cfg config.Config) (string, err
 		home, _ = os.UserHomeDir()
 	}
 
+	sep := pathSeparator(cwd)
+
 	// Tilde substitution.
 	dir := cwd
 	if home != "" {
 		if dir == home {
 			dir = "~"
-		} else if strings.HasPrefix(dir, home+"/") {
+		} else if strings.HasPrefix(dir, home+sep) {
 			dir = "~" + dir[len(home):]
 		}
 	}
 
-	dir = truncatePath(dir, cfg.Directory.TruncationLength)
+	dir = truncatePath(dir, cfg.Directory.TruncationLength, sep)
 
 	templateData := struct{ Dir string }{Dir: dir}
 
@@ -68,19 +70,29 @@ func (m DirectoryModule) Render(data input.Data, cfg config.Config) (string, err
 	return wrapStyle(result, cfg.Directory.Style), nil
 }
 
+// pathSeparator returns the separator used by path: a backslash if the path
+// contains one (Windows-style), otherwise a forward slash.
+func pathSeparator(path string) string {
+	if strings.Contains(path, "\\") {
+		return "\\"
+	}
+
+	return "/"
+}
+
 // truncatePath keeps the last maxSegments path segments fully and abbreviates earlier ones
-// to their first character. The leading "/" or "~/" prefix is preserved.
-func truncatePath(path string, maxSegments int) string {
+// to their first character. The leading root or "~"+sep prefix is preserved.
+func truncatePath(path string, maxSegments int, sep string) string {
 	if maxSegments <= 0 {
 		return path
 	}
 
-	prefix, segmentStr := splitPathPrefix(path)
+	prefix, segmentStr := splitPathPrefix(path, sep)
 	if segmentStr == "" {
 		return prefix
 	}
 
-	segments := strings.Split(segmentStr, "/")
+	segments := strings.Split(segmentStr, sep)
 
 	if len(segments) <= maxSegments {
 		return path
@@ -94,23 +106,33 @@ func truncatePath(path string, maxSegments int) string {
 		}
 	}
 
-	return prefix + strings.Join(segments, "/")
+	return prefix + strings.Join(segments, sep)
 }
 
-func splitPathPrefix(path string) (string, string) {
-	if strings.HasPrefix(path, "~/") {
-		return "~/", path[2:]
+func splitPathPrefix(path, sep string) (string, string) {
+	tildePrefix := "~" + sep
+	if strings.HasPrefix(path, tildePrefix) {
+		return tildePrefix, path[len(tildePrefix):]
 	}
 
 	if path == "~" {
 		return "~", ""
 	}
 
-	if strings.HasPrefix(path, "/") {
-		return "/", path[1:]
+	// Windows drive prefix, e.g. "C:\" or "C:/".
+	if len(path) >= 3 && isDriveLetter(path[0]) && path[1] == ':' && string(path[2]) == sep {
+		return path[:3], path[3:]
+	}
+
+	if strings.HasPrefix(path, sep) {
+		return sep, path[len(sep):]
 	}
 
 	return "", path
+}
+
+func isDriveLetter(b byte) bool {
+	return (b >= 'A' && b <= 'Z') || (b >= 'a' && b <= 'z')
 }
 
 // resolveDirectoryHyperlink executes the URL template with the absolute path.
