@@ -70,10 +70,15 @@ func (m DirectoryModule) Render(data input.Data, cfg config.Config) (string, err
 	return wrapStyle(result, cfg.Directory.Style), nil
 }
 
-// pathSeparator returns the separator used by path: a backslash if the path
-// contains one (Windows-style), otherwise a forward slash.
+// pathSeparator returns the separator used by path: a backslash for an
+// anchored Windows path (drive prefix or leading backslash), otherwise a
+// forward slash.
 func pathSeparator(path string) string {
-	if strings.Contains(path, "\\") {
+	if strings.HasPrefix(path, "\\") {
+		return "\\"
+	}
+
+	if len(path) >= 3 && isDriveLetter(path[0]) && path[1] == ':' && path[2] == '\\' {
 		return "\\"
 	}
 
@@ -81,7 +86,8 @@ func pathSeparator(path string) string {
 }
 
 // truncatePath keeps the last maxSegments path segments fully and abbreviates earlier ones
-// to their first character. The leading root or "~"+sep prefix is preserved.
+// to their first character. The leading root (Unix "/", Windows drive "C:\", or UNC
+// "\\server\share\") or "~"+sep prefix is preserved.
 func truncatePath(path string, maxSegments int, sep string) string {
 	if maxSegments <= 0 {
 		return path
@@ -122,6 +128,19 @@ func splitPathPrefix(path, sep string) (string, string) {
 	// Windows drive prefix, e.g. "C:\" or "C:/".
 	if len(path) >= 3 && isDriveLetter(path[0]) && path[1] == ':' && string(path[2]) == sep {
 		return path[:3], path[3:]
+	}
+
+	// Windows UNC prefix, e.g. "\\server\share\" or "\\server\share".
+	if sep == "\\" && strings.HasPrefix(path, sep+sep) {
+		parts := strings.SplitN(path[2:], sep, 3)
+		if len(parts) >= 2 && parts[0] != "" && parts[1] != "" {
+			prefix := sep + sep + parts[0] + sep + parts[1]
+			if len(parts) == 3 {
+				return prefix + sep, parts[2]
+			}
+
+			return prefix, ""
+		}
 	}
 
 	if strings.HasPrefix(path, sep) {
