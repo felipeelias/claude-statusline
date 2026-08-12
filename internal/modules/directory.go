@@ -130,17 +130,8 @@ func splitPathPrefix(path, sep string) (string, string) {
 		return path[:3], path[3:]
 	}
 
-	// Windows UNC prefix, e.g. "\\server\share\" or "\\server\share".
-	if sep == "\\" && strings.HasPrefix(path, sep+sep) {
-		parts := strings.SplitN(path[2:], sep, 3)
-		if len(parts) >= 2 && parts[0] != "" && parts[1] != "" {
-			prefix := sep + sep + parts[0] + sep + parts[1]
-			if len(parts) == 3 {
-				return prefix + sep, parts[2]
-			}
-
-			return prefix, ""
-		}
+	if prefix, rest, ok := splitUNCPrefix(path, sep); ok {
+		return prefix, rest
 	}
 
 	if strings.HasPrefix(path, sep) {
@@ -148,6 +139,31 @@ func splitPathPrefix(path, sep string) (string, string) {
 	}
 
 	return "", path
+}
+
+// uncPathParts is the number of path components in a UNC prefix: an empty
+// leading component, the server name, and the share name.
+const uncPathParts = 3
+
+// splitUNCPrefix splits a Windows UNC prefix, e.g. "\\server\share\" or
+// "\\server\share", from the rest of path. ok is false if path does not
+// start with a UNC prefix.
+func splitUNCPrefix(path, sep string) (string, string, bool) {
+	if sep != "\\" || !strings.HasPrefix(path, sep+sep) {
+		return "", "", false
+	}
+
+	parts := strings.SplitN(path[2:], sep, uncPathParts)
+	if len(parts) < 2 || parts[0] == "" || parts[1] == "" {
+		return "", "", false
+	}
+
+	prefix := sep + sep + parts[0] + sep + parts[1]
+	if len(parts) == uncPathParts {
+		return prefix + sep, parts[2], true
+	}
+
+	return prefix, "", true
 }
 
 func isDriveLetter(b byte) bool {
