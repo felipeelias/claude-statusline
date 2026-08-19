@@ -127,17 +127,17 @@ disabled = false
 
 ### Model module
 
-Template fields:
+The default format is `{{.Name}}{{with .Details}} ({{.}}){{end}}`, which renders `Claude Opus 5 (1m, xhigh)`. Parts that are absent are omitted.
 
-The default format is `{{.Name}}{{with .Details}} ({{.}}){{end}}`, which renders `Opus 5 (1m, xhigh)`.
+Template fields:
 
 | Field | Description | Example |
 |-------|-------------|---------|
-| `{{.Name}}` | Display name with any parenthesised suffix stripped | `Opus 5` |
+| `{{.Name}}` | Display name with any parenthesised suffix stripped | `Claude Opus 5` |
 | `{{.Context}}` | Abbreviated context window, empty unless extended | `1m` |
 | `{{.Effort}}` | Reasoning effort, empty when the model has none | `xhigh` |
 | `{{.Details}}` | `Context` and `Effort` joined with `, ` | `1m, xhigh` |
-| `{{.DisplayName}}` | Raw display name from Claude Code | `Opus 5 (1M context)` |
+| `{{.DisplayName}}` | Raw display name from Claude Code | `Claude Opus 5 (1M context)` |
 | `{{.Short}}` | Compact name extracted from model ID | `Sonnet 4.6` |
 | `{{.ID}}` | Raw model ID | `claude-sonnet-4-6-20250514` |
 
@@ -146,6 +146,22 @@ The default format is `{{.Name}}{{with .Details}} ({{.}}){{end}}`, which renders
 format = "{{.Short}}"
 style = "bold"
 ```
+
+### Context module
+
+The bar tints itself via `thresholds`, and `bar_markers` draws a glyph on either side of the bar once usage crosses a threshold. Markers keep their own style independent of the bar tint, so a bar that is still yellow can carry a red marker. The last matching entry wins, so list thresholds in ascending order.
+
+```toml
+[context]
+bar_width = 10
+bar_markers = [
+  { above = 20, glyph = "▲", style = "208" },
+  { above = 30, glyph = "▲", style = "202" },
+  { above = 35, glyph = "▲", style = "red" },
+]
+```
+
+Set `bar_markers = []` to disable them. Powerline presets inherit markers tinted to their own warn and high palette colours.
 
 ### Usage module
 
