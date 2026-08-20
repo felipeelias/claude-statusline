@@ -11,6 +11,12 @@ type Model struct {
 	DisplayName string `json:"display_name"`
 }
 
+// Effort represents the session's reasoning effort level. Claude Code omits it
+// for models that do not support the effort parameter, leaving Level empty.
+type Effort struct {
+	Level string `json:"level"`
+}
+
 // Workspace represents the working directory context.
 type Workspace struct {
 	CurrentDir string `json:"current_dir"`
@@ -86,6 +92,7 @@ type Data struct {
 	TranscriptPath    string        `json:"transcript_path"`
 	Version           string        `json:"version"`
 	Model             Model         `json:"model"`
+	Effort            Effort        `json:"effort"`
 	Cwd               string        `json:"cwd"`
 	Workspace         Workspace     `json:"workspace"`
 	Cost              Cost          `json:"cost"`

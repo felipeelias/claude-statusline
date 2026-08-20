@@ -31,6 +31,15 @@ type Threshold struct {
 	Style string  `toml:"style"`
 }
 
+// BarMarker defines a glyph rendered on either side of a progress bar when a
+// numeric value exceeds a threshold. Evaluated in order, last match wins, so
+// markers should be listed ascending.
+type BarMarker struct {
+	Above float64 `toml:"above"`
+	Glyph string  `toml:"glyph"`
+	Style string  `toml:"style"`
+}
+
 // ModelConfig holds model module settings.
 type ModelConfig struct {
 	Format   string `toml:"format"`
@@ -66,6 +75,7 @@ type ContextConfig struct {
 	BarFill    string      `toml:"bar_fill"`
 	BarEmpty   string      `toml:"bar_empty"`
 	Thresholds []Threshold `toml:"thresholds"`
+	BarMarkers []BarMarker `toml:"bar_markers"`
 }
 
 // GitBranchConfig holds git branch module settings.
@@ -128,13 +138,40 @@ type VimModeConfig struct {
 
 const (
 	defaultTruncationLength = 3
-	defaultBarWidth = 5
+	defaultBarWidth         = 5
 	costWarnThreshold       = 5.0
 	ctxWarnThreshold        = 50
 	ctxHighThreshold        = 90
+	ctxMarkerWarnThreshold  = 20
+	ctxMarkerHighThreshold  = 30
+	ctxMarkerCritThreshold  = 35
 	usageWarnThreshold      = 75
 	usageHighThreshold      = 90
 )
+
+// markerGlyph is the default attention glyph rendered around the context bar
+// once usage exceeds a marker threshold (U+25B2 BLACK UP-POINTING TRIANGLE).
+// Renders without a Nerd Font.
+const markerGlyph = "▲"
+
+// defaultContextConfig returns the default context module configuration,
+// including bar markers that flag rising context usage with coloured triangles.
+func defaultContextConfig() ContextConfig {
+	return ContextConfig{
+		Format:   `{{.Bar}} {{printf "%.0f" .UsedPct}}%`,
+		Style:    "green",
+		BarWidth: defaultBarWidth,
+		Thresholds: []Threshold{
+			{Above: ctxWarnThreshold, Style: "yellow"},
+			{Above: ctxHighThreshold, Style: "red"},
+		},
+		BarMarkers: []BarMarker{
+			{Above: ctxMarkerWarnThreshold, Glyph: markerGlyph, Style: "208"}, // orange
+			{Above: ctxMarkerHighThreshold, Glyph: markerGlyph, Style: "202"}, // orange-red
+			{Above: ctxMarkerCritThreshold, Glyph: markerGlyph, Style: "red"},
+		},
+	}
+}
 
 // Default returns a Config with hardcoded default values.
 //
@@ -144,7 +181,7 @@ func Default() Config {
 		Preset: "default",
 		Format: "$directory | $git_branch | $model | $cost | $context",
 		Model: ModelConfig{
-			Format: "{{.DisplayName}}",
+			Format: "{{.Name}}{{with .Details}} ({{.}}){{end}}",
 			Style:  "bold",
 		},
 		Directory: DirectoryConfig{
@@ -161,15 +198,7 @@ func Default() Config {
 				{Above: costWarnThreshold, Style: "red"},
 			},
 		},
-		Context: ContextConfig{
-			Format:   `{{.Bar}} {{printf "%.0f" .UsedPct}}%`,
-			Style:    "green",
-			BarWidth: defaultBarWidth,
-			Thresholds: []Threshold{
-				{Above: ctxWarnThreshold, Style: "yellow"},
-				{Above: ctxHighThreshold, Style: "red"},
-			},
-		},
+		Context: defaultContextConfig(),
 		GitBranch: GitBranchConfig{
 			Format: iconBranch + " {{.Branch}}" +
 				"{{if .InWorktree}} " + iconWorktree + "{{end}}" +
@@ -294,9 +323,13 @@ format = "$directory | $git_branch | $model | $cost | $context"
 # Styles: "bold", "dim", "italic", "fg:#hex", "bg:#hex", "208"
 
 # [model]
-# format = "{{.DisplayName}}"
+# format = "{{.Name}}{{with .Details}} ({{.}}){{end}}"
 # style = "bold"
-# Template fields: DisplayName, ID, Short (e.g. "Sonnet 4.6")
+# Template fields: Name (recognised context-window suffix stripped, other
+# suffixes such as "(beta)" remain), Context ("1m"), Effort ("xhigh", empty
+# when the model has no effort setting), Details (Context and Effort joined),
+# DisplayName (raw, e.g. "Claude Opus 5 (1M context)"), ID,
+# Short (e.g. "Sonnet 4.6")
 
 # [directory]
 # format = "{{.Dir}}"
@@ -323,6 +356,14 @@ format = "$directory | $git_branch | $model | $cost | $context"
 # thresholds = [
 #   { above = 50, style = "yellow" },
 #   { above = 90, style = "red" },
+# ]
+# Attention markers bracketing the module's rendered output at the given
+# thresholds, so with the default format they flank the bar and the percentage.
+# Evaluated in order, last match wins, so list them ascending. Set [] to disable.
+# bar_markers = [
+#   { above = 20, glyph = "▲", style = "208" }, # orange
+#   { above = 30, glyph = "▲", style = "202" }, # orange-red
+#   { above = 35, glyph = "▲", style = "red" },
 # ]
 
 # [git_branch]

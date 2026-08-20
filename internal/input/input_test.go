@@ -18,6 +18,9 @@ func TestParse_FullJSON(t *testing.T) {
 			"id": "claude-sonnet-4-20250514",
 			"display_name": "Claude Sonnet 4"
 		},
+		"effort": {
+			"level": "xhigh"
+		},
 		"cwd": "/home/user/project",
 		"workspace": {
 			"current_dir": "/home/user/project",
@@ -82,6 +85,8 @@ func TestParse_FullJSON(t *testing.T) {
 	assert.Equal(t, "claude-sonnet-4-20250514", data.Model.ID)
 	assert.Equal(t, "Claude Sonnet 4", data.Model.DisplayName)
 
+	assert.Equal(t, "xhigh", data.Effort.Level)
+
 	assert.Equal(t, "/home/user/project", data.Cwd)
 	assert.Equal(t, "/home/user/project", data.Workspace.CurrentDir)
 	assert.Equal(t, "/home/user/project", data.Workspace.ProjectDir)
@@ -136,6 +141,7 @@ func TestParse_EmptyJSON(t *testing.T) {
 	assert.Empty(t, data.Version)
 	assert.Empty(t, data.Model.ID)
 	assert.Empty(t, data.Model.DisplayName)
+	assert.Empty(t, data.Effort.Level)
 	assert.Empty(t, data.Cwd)
 	assert.Empty(t, data.Workspace.CurrentDir)
 	assert.Empty(t, data.Workspace.ProjectDir)

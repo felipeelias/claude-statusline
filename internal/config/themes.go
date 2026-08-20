@@ -59,6 +59,7 @@ func presetMinimal() Config {
 	cfg.Cost.Style = "green"
 	cfg.Context.Format = `{{printf "%.0f" .UsedPct}}%`
 	cfg.Context.Style = "green"
+	cfg.Context.BarMarkers = nil // no bar to bracket in this preset
 	cfg.Usage.Format = `{{printf "%.0f" .BlockPct}}% W:{{printf "%.0f" .WeeklyPct}}%`
 
 	return cfg
@@ -118,7 +119,7 @@ func powerlineConfig(preset string, format string, segFg string, colors [5]strin
 			Mode:  "detailed",
 		},
 		Model: ModelConfig{
-			Format: " {{.DisplayName}} ", Style: segStyle(segFg, colors[2]) + " bold",
+			Format: " {{.Name}}{{with .Details}} ({{.}}){{end}} ", Style: segStyle(segFg, colors[2]) + " bold",
 		},
 		Cost: CostConfig{
 			Format: ` ${{printf "%.2f" .TotalCostUSD}} `,
@@ -134,6 +135,10 @@ func powerlineConfig(preset string, format string, segFg string, colors [5]strin
 			Thresholds: []Threshold{
 				{Above: ctxWarnThreshold, Style: segStyle(thresholds.warn, colors[4])},
 				{Above: ctxHighThreshold, Style: segStyle(thresholds.high, colors[4])},
+			},
+			BarMarkers: []BarMarker{
+				{Above: ctxMarkerWarnThreshold, Glyph: markerGlyph, Style: segStyle(thresholds.warn, colors[4])},
+				{Above: ctxMarkerHighThreshold, Glyph: markerGlyph, Style: segStyle(thresholds.high, colors[4])},
 			},
 		},
 		SessionTimer: SessionTimerConfig{
