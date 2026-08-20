@@ -325,9 +325,10 @@ format = "$directory | $git_branch | $model | $cost | $context"
 # [model]
 # format = "{{.Name}}{{with .Details}} ({{.}}){{end}}"
 # style = "bold"
-# Template fields: Name (no parenthesised suffix), Context ("1m"), Effort
-# ("xhigh", empty when the model has no effort setting), Details (Context and
-# Effort joined), DisplayName (raw, e.g. "Opus 5 (1M context)"), ID,
+# Template fields: Name (recognised context-window suffix stripped, other
+# suffixes such as "(beta)" remain), Context ("1m"), Effort ("xhigh", empty
+# when the model has no effort setting), Details (Context and Effort joined),
+# DisplayName (raw, e.g. "Claude Opus 5 (1M context)"), ID,
 # Short (e.g. "Sonnet 4.6")
 
 # [directory]
@@ -356,7 +357,8 @@ format = "$directory | $git_branch | $model | $cost | $context"
 #   { above = 50, style = "yellow" },
 #   { above = 90, style = "red" },
 # ]
-# Attention markers rendered on either side of the bar at the given thresholds.
+# Attention markers bracketing the module's rendered output at the given
+# thresholds, so with the default format they flank the bar and the percentage.
 # Evaluated in order, last match wins, so list them ascending. Set [] to disable.
 # bar_markers = [
 #   { above = 20, glyph = "▲", style = "208" }, # orange
