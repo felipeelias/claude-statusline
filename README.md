@@ -133,10 +133,10 @@ Template fields:
 
 | Field | Description | Example |
 |-------|-------------|---------|
-| `{{.Name}}` | Display name with any parenthesised suffix stripped | `Claude Opus 5` |
+| `{{.Name}}` | Display name with a recognised context-window suffix stripped; other suffixes such as `(beta)` remain | `Claude Opus 5` |
 | `{{.Context}}` | Abbreviated context window, empty unless extended | `1m` |
 | `{{.Effort}}` | Reasoning effort, empty when the model has none | `xhigh` |
-| `{{.Details}}` | `Context` and `Effort` joined with `, ` | `1m, xhigh` |
+| `{{.Details}}` | `Context` and `Effort` joined with a comma and a space | `1m, xhigh` |
 | `{{.DisplayName}}` | Raw display name from Claude Code | `Claude Opus 5 (1M context)` |
 | `{{.Short}}` | Compact name extracted from model ID | `Sonnet 4.6` |
 | `{{.ID}}` | Raw model ID | `claude-sonnet-4-6-20250514` |
@@ -149,7 +149,7 @@ style = "bold"
 
 ### Context module
 
-The bar tints itself via `thresholds`, and `bar_markers` draws a glyph on either side of the bar once usage crosses a threshold. Markers keep their own style independent of the bar tint, so a bar that is still yellow can carry a red marker. The last matching entry wins, so list thresholds in ascending order.
+The bar tints itself via `thresholds`, and `bar_markers` brackets the module's rendered output with a glyph once usage crosses a threshold. The glyphs sit outside whatever `format` produces, so with the default format they flank the bar and the percentage together. Markers keep their own style independent of the bar tint, so a bar that is still yellow can carry a red marker. The last matching entry wins, so list thresholds in ascending order.
 
 ```toml
 [context]
