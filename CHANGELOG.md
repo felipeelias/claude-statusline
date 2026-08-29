@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.9.1](https://github.com/felipeelias/claude-statusline/compare/v0.9.0...v0.9.1) (2026-08-29)
+
+
+### Bug Fixes
+
+* support Windows-style backslash paths in directory truncation ([#48](https://github.com/felipeelias/claude-statusline/issues/48)) ([83a75fe](https://github.com/felipeelias/claude-statusline/commit/83a75fedacc5db7c23e9e425b34b6a49c7fe156b))
+
 ## [0.9.0](https://github.com/felipeelias/claude-statusline/compare/v0.8.0...v0.9.0) (2026-03-31)
 
 
