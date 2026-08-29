@@ -80,4 +80,48 @@ func TestDirectoryModule_Render(t *testing.T) {
 		require.NoError(t, err)
 		assert.Contains(t, result, "\033[36m")
 	})
+
+	t.Run("windows path with tilde substitution and truncation", func(t *testing.T) {
+		data := input.Data{
+			Cwd: `C:\Users\user\a\very\deep\nested\path`,
+		}
+
+		result, err := modules.NewDirectoryModuleWithHome(`C:\Users\user`).Render(data, cfg)
+		require.NoError(t, err)
+		assert.Contains(t, result, `~\a\v\deep\nested\path`)
+	})
+
+	t.Run("windows path outside home directory keeps drive prefix", func(t *testing.T) {
+		data := input.Data{Cwd: `C:\ProgramData\logs\deep\nested\path`}
+
+		result, err := modules.NewDirectoryModuleWithHome(`C:\Users\user`).Render(data, cfg)
+		require.NoError(t, err)
+		assert.Contains(t, result, `C:\P\l\deep\nested\path`)
+	})
+
+	t.Run("windows home directory alone becomes tilde", func(t *testing.T) {
+		data := input.Data{Cwd: `C:\Users\user`}
+
+		result, err := modules.NewDirectoryModuleWithHome(`C:\Users\user`).Render(data, cfg)
+		require.NoError(t, err)
+		assert.Contains(t, result, "~")
+	})
+
+	t.Run("posix path with backslash in component is not treated as windows", func(t *testing.T) {
+		data := input.Data{
+			Cwd: `/home/user/very/a\name`,
+		}
+
+		result, err := modules.NewDirectoryModuleWithHome("/home/user").Render(data, cfg)
+		require.NoError(t, err)
+		assert.Contains(t, result, `~/very/a\name`)
+	})
+
+	t.Run("windows UNC path keeps server and share prefix", func(t *testing.T) {
+		data := input.Data{Cwd: `\\server\share\some\deep\nested\path`}
+
+		result, err := modules.NewDirectoryModuleWithHome(`C:\Users\user`).Render(data, cfg)
+		require.NoError(t, err)
+		assert.Contains(t, result, `\\server\share\s\deep\nested\path`)
+	})
 }
