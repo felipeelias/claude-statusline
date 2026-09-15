@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.12.0](https://github.com/frank-bee/claude-statusline/compare/v0.11.1...v0.12.0) (2026-09-15)
+
+
+### Features
+
+* **themes:** preview the off-by-default modules too ([902a734](https://github.com/frank-bee/claude-statusline/commit/902a7345259790fc020dfe7a37334d857516c850))
+
 ## [0.11.1](https://github.com/frank-bee/claude-statusline/compare/v0.11.0...v0.11.1) (2026-09-15)
 
 
