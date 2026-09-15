@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.11.0](https://github.com/frank-bee/claude-statusline/compare/v0.10.1...v0.11.0) (2026-09-15)
+
+
+### Features
+
+* **windows:** expose the stale marker as a template field ([eb1341d](https://github.com/frank-bee/claude-statusline/commit/eb1341d1fa4df0b0c5954537a94bbb9e1dc65e34))
+
 ## [0.10.1](https://github.com/frank-bee/claude-statusline/compare/v0.10.0...v0.10.1) (2026-09-15)
 
 
