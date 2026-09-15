@@ -306,8 +306,8 @@ In the transcript file (path via `transcript_path`):
   "type": "pr-link",
   "sessionId": "d2576725-...",
   "prNumber": 10,
-  "prUrl": "https://github.com/felipeelias/claude-statusline/pull/10",
-  "prRepository": "felipeelias/claude-statusline",
+  "prUrl": "https://github.com/frank-bee/claude-statusline/pull/10",
+  "prRepository": "frank-bee/claude-statusline",
   "timestamp": "2026-03-17T09:35:35.070Z"
 }
 ```
