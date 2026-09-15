@@ -7,6 +7,14 @@ A fork of [felipeelias/claude-statusline](https://github.com/felipeelias/claude-
 (MIT). Upstream stays the source of truth for everything except the `windows` and `credits`
 modules and the fixes listed in `git log upstream/main..main`.
 
+**Which usage module to reach for.** Upstream's `usage` reads the `rate_limits` Claude Code
+puts in the payload: live, no HTTP, nothing to rate-limit. Measured against a real payload,
+`/api/oauth/usage` returns the *same* two windows, so `windows` is redundant with `usage`;
+the finer API keys (`seven_day_opus`, `seven_day_sonnet`) come back `null`. Only `credits`
+covers something the payload lacks — the credit pool on usage-based seats, and an account
+without one (`spend.enabled: false`) renders nothing at all. Recommend `usage` by default and
+treat the API path as the credit-pool case.
+
 ## Layout
 
 ```
@@ -37,16 +45,40 @@ the two keeps their config.
 
 ```bash
 go build ./... && go test ./... && golangci-lint run
-claude-statusline test      # render with mock data
-claude-statusline themes    # preview every preset
+GOOS=windows go build ./...   # the detach path is per-platform; it breaks quietly here
+claude-statusline test        # render with mock data
+claude-statusline themes      # preview every preset
 ```
+
+**Check the linter actually ran.** A golangci-lint built against an older Go than the local
+toolchain fails inside the standard library and reports typecheck noise instead of your code,
+so `run` looks like it passed on nothing. If the output mentions `math/rand/v2` or files under
+`libexec/src`, upgrade it before believing a clean run. CI pins its own version, so it will
+catch what a stale local one waves through.
 
 Tests must not touch the developer's real `$HOME`: `main_test.go` and
 `internal/cli/cli_test.go` point `HOME`, `XDG_CONFIG_HOME` and `XDG_STATE_HOME` at
 `t.TempDir()`. Keep that invariant when adding tests that read config or cache.
 
-`internal/anthropic` spawns a detached refresh process. It must never re-exec itself during a
-test run — see the guard in `usage.go` and `export_test.go`.
+Two invariants in `internal/anthropic`:
+
+- It spawns a **detached refresh process** by re-executing this binary, which must never happen
+  during a test run — see the `testing.Testing()` guard in `usage.go`. `export_test.go` holds
+  the seams (`SetBaseURL`, `SuppressRefresh`) that let tests avoid the real thing.
+- A failed refresh **backs off** and renders respect it. Anthropic rate-limits the usage
+  endpoint and answers 429 with a `Retry-After` of nearly an hour; the original code retried on
+  every render whose cache had expired, which sustained the limit and froze the displayed
+  figure for its whole duration. Do not reintroduce a retry-per-render path.
+
+**Verifying a reading is right, not merely rendered.** That a module renders is no evidence its
+number is correct — a frozen cache renders beautifully. Capture what Claude Code actually sends
+and compare:
+
+```bash
+printf '#!/bin/sh\ntee /tmp/payload.json | claude-statusline\n' > /tmp/wrap.sh && chmod +x /tmp/wrap.sh
+# point statusLine.command at /tmp/wrap.sh, wait for a render, then restore it
+python3 -c "import json;print(json.load(open('/tmp/payload.json'))['rate_limits'])"
+```
 
 ## Contributing back upstream
 
