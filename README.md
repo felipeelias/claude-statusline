@@ -4,18 +4,28 @@ Configurable status line for [Claude Code](https://docs.anthropic.com/en/docs/cl
 
 ![claude-statusline](assets/screenshot.webp)
 
+> **This is a fork.** The original is
+> [felipeelias/claude-statusline](https://github.com/felipeelias/claude-statusline) by Felipe
+> Philipp, MIT-licensed, and this fork keeps that licence. It adds two modules that read live
+> usage from Anthropic — [`windows` and `credits`](#reading-usage-from-anthropic-windows-and-credits)
+> — plus a few fixes, and it tracks upstream. The changes are offered back upstream issue by
+> issue; anything that lands there disappears from this list.
+>
+> Binary, command and config paths are identical to upstream, so this installs as a drop-in
+> replacement — which also means the two formulae conflict. Pick one.
+
 ## Installation
 
 With Homebrew:
 
 ```bash
-brew install felipeelias/tap/claude-statusline
+brew install frank-bee/tap/claude-statusline
 ```
 
 Or with Go:
 
 ```bash
-go install github.com/felipeelias/claude-statusline@latest
+go install github.com/frank-bee/claude-statusline@latest
 ```
 
 ## Setup
@@ -322,8 +332,9 @@ Other statusline tools from the [awesome-claude-code](https://github.com/hesreal
 
 ## Contributors
 
-- [@sammcj](https://github.com/sammcj)
+Upstream: [@felipeelias](https://github.com/felipeelias), [@sammcj](https://github.com/sammcj).
 
 ## License
 
-MIT
+MIT — see [LICENSE](LICENSE). Copyright remains with the original author; this fork adds its
+own copyright line for the changes made here.
