@@ -18,6 +18,7 @@ builds:
 
 brews:
   - name: claude-statusline
+    directory: Formula
     repository:
       owner: frank-bee
       name: homebrew-tap
