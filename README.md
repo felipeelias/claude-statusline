@@ -218,10 +218,11 @@ that refreshes it and outlives the render. The cache is
 forces a refresh in the foreground and prints why one failed, which is the way
 to tell an expired login from a rate-limited endpoint.
 
-`credits` additionally exposes `{{.Stale}}`, which renders `⚠︎` once a reading is
-older than 30 minutes - usually an expired login - rather than showing a frozen
-figure as current. `windows` has no equivalent field today and renders whatever
-the cache holds.
+A reading older than 30 minutes - usually an expired login - is marked `⚠︎`
+rather than shown as current, by both modules. Both expose it as `{{.Stale}}`,
+so a custom format can place it or leave it out; leave `{{.Stale}}` out of a
+`windows` format and the marker is still appended at the end, so the warning
+cannot be lost by accident.
 
 `windows` template fields:
 
@@ -231,6 +232,7 @@ the cache holds.
 | `{{.Pct}}` | Usage (0-100) |
 | `{{.Bar}}` | Progress bar |
 | `{{.Resets}}` | When it resets (clock time today, weekday otherwise) |
+| `{{.Stale}}` | `⚠︎` when the reading is old, empty otherwise |
 
 `credits` template fields:
 

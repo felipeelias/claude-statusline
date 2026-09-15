@@ -33,6 +33,11 @@ func (WindowsModule) Render(_ input.Data, cfg config.Config) (string, error) {
 
 	fill, empty := resolveBarChars(cfg.Windows.BarStyle, cfg.Windows.BarFill, cfg.Windows.BarEmpty)
 
+	stale := ""
+	if usage.Age > staleAfter {
+		stale = " ⚠︎"
+	}
+
 	parts := make([]string, 0, len(usage.Limits))
 	worst := 0.0
 
@@ -47,11 +52,13 @@ func (WindowsModule) Render(_ input.Data, cfg config.Config) (string, error) {
 			Pct    float64
 			Bar    string
 			Resets string
+			Stale  string
 		}{
 			Name:   name,
 			Pct:    limit.Percent,
 			Bar:    buildBar(limit.Percent, cfg.Windows.BarWidth, fill, empty),
 			Resets: formatResetsAt(limit.ResetsAt),
+			Stale:  stale,
 		}
 
 		rendered, renderErr := renderTemplate("windows", cfg.Windows.Format, templateData)
@@ -65,8 +72,12 @@ func (WindowsModule) Render(_ input.Data, cfg config.Config) (string, error) {
 
 	result := strings.Join(parts, cfg.Windows.Separator)
 
-	if usage.Age > staleAfter {
-		result += " ⚠︎"
+	// A format that places {{.Stale}} itself has already rendered the marker,
+	// once per window. Appending it again would double it. A format that does
+	// not mention it still gets the warning, because losing it silently is the
+	// one outcome a staleness marker must not have.
+	if stale != "" && !strings.Contains(cfg.Windows.Format, ".Stale") {
+		result += stale
 	}
 
 	return wrapStyle(result, resolveThresholdStyle(worst, cfg.Windows.Thresholds, cfg.Windows.Style)), nil

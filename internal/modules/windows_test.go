@@ -154,6 +154,31 @@ func TestWindowsModule_Render(t *testing.T) {
 		assert.Equal(t, "[]", result)
 	})
 
+	t.Run("a format that places the marker itself is not marked twice", func(t *testing.T) {
+		seedUsage(t, twoWindows, time.Hour)
+
+		cfg := windowsConfig()
+		cfg.Windows.Format = `{{.Name}} {{printf "%.0f" .Pct}}%{{.Stale}}`
+
+		result, err := modules.WindowsModule{}.Render(input.Data{}, cfg)
+
+		require.NoError(t, err)
+		assert.Equal(t, 2, countMarkers(result),
+			"one per window because the format asked for it, and no trailing one on top")
+	})
+
+	t.Run("a fresh reading renders no marker even when the format asks", func(t *testing.T) {
+		seedUsage(t, twoWindows, 0)
+
+		cfg := windowsConfig()
+		cfg.Windows.Format = `{{.Name}}{{.Stale}}`
+
+		result, err := modules.WindowsModule{}.Render(input.Data{}, cfg)
+
+		require.NoError(t, err)
+		assert.Equal(t, 0, countMarkers(result))
+	})
+
 	t.Run("a broken format is reported", func(t *testing.T) {
 		seedUsage(t, twoWindows, 0)
 
