@@ -16,9 +16,9 @@ FONT = f"{FONT_DIR}/JetBrainsMonoNerdFontMono-Regular.ttf"
 FONT_BOLD = f"{FONT_DIR}/JetBrainsMonoNerdFontMono-Bold.ttf"
 PT = 32
 CELL_W = 19.025
-LINE_H = 64      # generous, so powerline pills do not touch
+LINE_H = 88      # pill height plus a full pill-height of air between rows
 PAD_X = 44
-PAD_Y = 34
+PAD_Y = 40
 RADIUS = 18
 BG = "#0f1117"
 FG = "#d8dee9"
@@ -72,7 +72,7 @@ def main():
         # Each pill is drawn a fixed height, centred in its row, so the gap
         # between rows stays even however tall the line box is.
         row_top = PAD_Y + row * LINE_H
-        pill_h = 46
+        pill_h = 46      # the pill itself; the rest of LINE_H is the gap
         top = row_top + (LINE_H - pill_h) / 2
         baseline = top + pill_h * 0.72
         for text, fg, bg, bold in runs:
