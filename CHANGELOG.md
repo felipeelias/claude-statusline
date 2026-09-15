@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.10.1](https://github.com/frank-bee/claude-statusline/compare/v0.10.0...v0.10.1) (2026-09-15)
+
+
+### Bug Fixes
+
+* **release:** publish the formula into the tap's Formula directory ([77a4856](https://github.com/frank-bee/claude-statusline/commit/77a4856bc215036d6928999fd476f476b6964741))
+
 ## [0.9.0](https://github.com/felipeelias/claude-statusline/compare/v0.8.0...v0.9.0) (2026-03-31)
 
 
