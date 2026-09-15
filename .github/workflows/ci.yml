@@ -1,8 +1,13 @@
 name: CI
 
+# GitHub-hosted runners on purpose. This repository is public and needs nothing
+# from our own network - no private registry, no VPC resources, just the Go
+# toolchain - so putting it on self-hosted or cloud runners of ours would buy
+# nothing and would expose those runners to pull requests from any fork.
+
 on:
   push:
-    branches: [main]
+    branches: [main, 'feat/**']
   pull_request:
 
 permissions:
@@ -20,6 +25,8 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
       - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
         with:
           go-version-file: go.mod
@@ -30,6 +37,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
       - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
         with:
           go-version-file: go.mod
