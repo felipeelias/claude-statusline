@@ -4,7 +4,7 @@ Configurable status line for [Claude Code](https://docs.anthropic.com/en/docs/cl
 Shows where you are, what you are running, and how much of your plan you have used — in one
 line, with no API key and no configuration to get started.
 
-![claude-statusline](assets/screenshot.webp)
+![claude-statusline in five presets](assets/preview.png)
 
 ## Installation
 

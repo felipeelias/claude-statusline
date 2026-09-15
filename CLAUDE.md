@@ -105,6 +105,20 @@ gh pr create --repo felipeelias/claude-statusline --base main
 `gh` defaults to the parent repository for a fork, which is what you want here — but pass
 `--repo frank-bee/claude-statusline` explicitly when you mean this one.
 
+## The README image
+
+`assets/preview.png` is generated, not screenshotted: `./scripts/render-preview.sh` renders the
+status line in five presets against fake data (a throwaway repo, a mock usage cache) and pipes
+the ANSI through `scripts/ansi2png.py`, which draws each coloured run at an exact cell position
+with a Nerd Font. Regenerate it rather than taking a new screenshot, so the image never carries
+a real path, branch or reading.
+
+Needs ImageMagick and `brew install --cask font-jetbrains-mono-nerd-font`. Two traps worth
+knowing: ImageMagick's SVG renderer ignores `font-family` and will silently typeset the whole
+thing in a proportional italic, and `-draw text` drops glyphs that `-annotate` renders fine.
+Checking whether a glyph exists with `label:` is useless - it falls back to another font and
+reports success for a glyph the chosen font does not have.
+
 ## Releases
 
 Fully automated. release-please raises the release PR from conventional commits; merging it
