@@ -82,3 +82,17 @@ func TestApplyPresetUnknown(t *testing.T) {
 	assert.False(t, ok)
 	assert.Equal(t, config.Default().Format, cfg.Format)
 }
+
+// Every preset must configure the Anthropic-backed modules. They are opt-in, but
+// a preset that leaves them zeroed makes $windows / $credits render as nothing.
+func TestApplyPresetKeepsUsageModules(t *testing.T) {
+	for _, name := range config.PresetNames() {
+		cfg, ok := config.ApplyPreset(name)
+		assert.True(t, ok, name)
+		assert.NotEmpty(t, cfg.Windows.Format, name)
+		assert.NotEmpty(t, cfg.Windows.Separator, name)
+		assert.Positive(t, cfg.Windows.BarWidth, name)
+		assert.NotEmpty(t, cfg.Credits.Format, name)
+		assert.Positive(t, cfg.Credits.BarWidth, name)
+	}
+}

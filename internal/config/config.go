@@ -20,6 +20,8 @@ type Config struct {
 	SessionTimer SessionTimerConfig `toml:"session_timer"`
 	LinesChanged LinesChangedConfig `toml:"lines_changed"`
 	Usage        UsageConfig        `toml:"usage"`
+	Credits      CreditsConfig      `toml:"credits"`
+	Windows      WindowsConfig      `toml:"windows"`
 	Version      VersionConfig      `toml:"version"`
 	VimMode      VimModeConfig      `toml:"vim_mode"`
 	AgentName    AgentNameConfig    `toml:"agent_name"`
@@ -119,6 +121,31 @@ type UsageConfig struct {
 	Thresholds []Threshold `toml:"thresholds"`
 }
 
+// CreditsConfig holds credits module settings.
+type CreditsConfig struct {
+	Format     string      `toml:"format"`
+	Style      string      `toml:"style"`
+	Disabled   bool        `toml:"disabled"`
+	BarWidth   int         `toml:"bar_width"`
+	BarStyle   string      `toml:"bar_style"`
+	BarFill    string      `toml:"bar_fill"`
+	BarEmpty   string      `toml:"bar_empty"`
+	Thresholds []Threshold `toml:"thresholds"`
+}
+
+// WindowsConfig holds windows module settings.
+type WindowsConfig struct {
+	Format     string      `toml:"format"`
+	Separator  string      `toml:"separator"`
+	Style      string      `toml:"style"`
+	Disabled   bool        `toml:"disabled"`
+	BarWidth   int         `toml:"bar_width"`
+	BarStyle   string      `toml:"bar_style"`
+	BarFill    string      `toml:"bar_fill"`
+	BarEmpty   string      `toml:"bar_empty"`
+	Thresholds []Threshold `toml:"thresholds"`
+}
+
 // VimModeConfig holds vim mode module settings.
 type VimModeConfig struct {
 	Format   string `toml:"format"`
@@ -128,7 +155,7 @@ type VimModeConfig struct {
 
 const (
 	defaultTruncationLength = 3
-	defaultBarWidth = 5
+	defaultBarWidth         = 5
 	costWarnThreshold       = 5.0
 	ctxWarnThreshold        = 50
 	ctxHighThreshold        = 90
@@ -200,6 +227,27 @@ func Default() Config {
 			Style:    "green",
 			Disabled: true,
 			BarWidth: defaultBarWidth,
+			Thresholds: []Threshold{
+				{Above: usageWarnThreshold, Style: "yellow"},
+				{Above: usageHighThreshold, Style: "red"},
+			},
+		},
+		Credits: CreditsConfig{
+			Format:   `{{.Bar}} ${{printf "%.0f" .Used}}/${{printf "%.0f" .Limit}} ({{printf "%.0f" .Pct}}%){{.Stale}}`,
+			Style:    "green",
+			Disabled: true,
+			BarWidth: defaultBarWidth,
+			Thresholds: []Threshold{
+				{Above: usageWarnThreshold, Style: "yellow"},
+				{Above: usageHighThreshold, Style: "red"},
+			},
+		},
+		Windows: WindowsConfig{
+			Format:    `{{.Bar}} {{.Name}} {{printf "%.0f" .Pct}}%`,
+			Separator: " · ",
+			Style:     "green",
+			Disabled:  true,
+			BarWidth:  defaultBarWidth,
 			Thresholds: []Threshold{
 				{Above: usageWarnThreshold, Style: "yellow"},
 				{Above: usageHighThreshold, Style: "red"},
@@ -372,6 +420,31 @@ format = "$directory | $git_branch | $model | $cost | $context"
 #   { above = 90, style = "red" },
 # ]
 # Template fields: BlockPct, WeeklyPct, BlockBar, WeeklyBar, BlockResets, WeeklyResets
+
+# Live usage read straight from Anthropic (not from the status line payload).
+# Both are off by default; add $windows / $credits to your format string.
+# [windows]
+# disabled = false
+# format = '{{.Bar}} {{.Name}} {{printf "%.0f" .Pct}}%'
+# separator = " · "   # between the 5h and weekly entries
+# style = "green"
+# bar_width = 5
+# bar_style = "classic"  # "classic", "blocks", "dots", "line", "squares"
+# bar_fill = "█"         # overrides bar_style fill character
+# bar_empty = "░"        # overrides bar_style empty character
+# thresholds = [
+#   { above = 75, style = "yellow" },
+#   { above = 90, style = "red" },
+# ]
+# Template fields: Name ("5h", "wk"), Pct, Bar, Resets
+
+# [credits]
+# disabled = false
+# format = '{{.Bar}} ${{printf "%.0f" .Used}}/${{printf "%.0f" .Limit}} ({{printf "%.0f" .Pct}}%){{.Stale}}'
+# style = "green"
+# bar_width = 5
+# Template fields: Used, Limit, Pct, Bar, Stale
+# Empty on plans without a credit pool.
 
 # [vim_mode]
 # disabled = false

@@ -154,6 +154,27 @@ func powerlineConfig(preset string, format string, segFg string, colors [5]strin
 				{Above: usageHighThreshold, Style: segStyle(thresholds.high, colors[4])},
 			},
 		},
+		Credits: CreditsConfig{
+			Format:   ` {{.Bar}} ${{printf "%.0f" .Used}}/${{printf "%.0f" .Limit}} ({{printf "%.0f" .Pct}}%){{.Stale}} `,
+			Style:    segStyle(segFg, colors[3]),
+			Disabled: true,
+			BarWidth: defaultBarWidth,
+			Thresholds: []Threshold{
+				{Above: usageWarnThreshold, Style: segStyle(thresholds.warn, colors[3])},
+				{Above: usageHighThreshold, Style: segStyle(thresholds.high, colors[3])},
+			},
+		},
+		Windows: WindowsConfig{
+			Format:    ` {{.Bar}} {{.Name}} {{printf "%.0f" .Pct}}% `,
+			Separator: "·",
+			Style:     segStyle(segFg, colors[3]),
+			Disabled:  true,
+			BarWidth:  defaultBarWidth,
+			Thresholds: []Threshold{
+				{Above: usageWarnThreshold, Style: segStyle(thresholds.warn, colors[3])},
+				{Above: usageHighThreshold, Style: segStyle(thresholds.high, colors[3])},
+			},
+		},
 		Version: VersionConfig{
 			Format: `v{{.Version}}`, Style: "dim", Disabled: true,
 		},
@@ -244,7 +265,7 @@ func presetCatppuccin() Config {
 	usageBg := "#cba6f7" // catppuccin mauve
 	cfg.Usage.Style = segStyle("#11111b", usageBg)
 	cfg.Usage.Thresholds = []Threshold{
-		{Above: usageWarnThreshold, Style: segStyle("#df8e1d", usageBg)},        // darkened yellow for contrast on mauve
+		{Above: usageWarnThreshold, Style: segStyle("#df8e1d", usageBg)},           // darkened yellow for contrast on mauve
 		{Above: usageHighThreshold, Style: segStyle("#d20f39", usageBg) + " bold"}, // catppuccin latte red, bold for emphasis
 	}
 

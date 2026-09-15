@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 	"time"
 
+	"github.com/felipeelias/claude-statusline/internal/anthropic"
 	"github.com/felipeelias/claude-statusline/internal/config"
 	"github.com/felipeelias/claude-statusline/internal/input"
 	"github.com/felipeelias/claude-statusline/internal/render"
@@ -32,12 +33,13 @@ func New(version string) *ucli.App {
 				EnvVars: []string{"CLAUDE_STATUSLINE_CONFIG"},
 			},
 		},
-		Action:   promptAction,
+		Action: promptAction,
 		Commands: []*ucli.Command{
 			promptCommand(),
 			initCommand(),
 			testCommand(),
 			themesCommand(),
+			refreshUsageCommand(),
 		},
 	}
 }
@@ -74,6 +76,25 @@ func promptAction(cmd *ucli.Context) error {
 	_, _ = fmt.Fprint(cmd.App.Writer, output)
 
 	return nil
+}
+
+// refreshUsageCommand refreshes the cached Anthropic usage reading. The
+// credits module spawns it detached when its cache goes stale, so the render
+// path never waits on an HTTP call; it is hidden because nobody runs it by hand.
+func refreshUsageCommand() *ucli.Command {
+	return &ucli.Command{
+		Name:   "refresh-usage",
+		Usage:  "Refresh the cached Anthropic usage reading",
+		Hidden: true,
+		Action: func(cmd *ucli.Context) error {
+			err := anthropic.Refresh()
+			if err != nil {
+				fmt.Fprintln(cmd.App.ErrWriter, "refresh error:", err)
+			}
+
+			return nil
+		},
+	}
 }
 
 func promptCommand() *ucli.Command {

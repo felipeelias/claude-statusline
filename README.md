@@ -99,6 +99,27 @@ format = " {{.DisplayName}} "
 style = "fg:#11111b bg:#cba6f7 bold"
 ```
 
+### Progress bars on powerline presets
+
+`context`, `windows`, `credits` and `usage` draw a bar with `bar_fill` / `bar_empty`
+(or a named `bar_style`). The default `░` empty cell is written in the segment's
+foreground colour, so on the light and mid-tone pills of `catppuccin` and
+`pastel-powerline` it reads as a solid block rather than as empty track. On those
+presets either pick a thinner track:
+
+```toml
+[context]
+bar_fill = "━"
+bar_empty = "─"
+```
+
+or drop `{{.Bar}}` from the format and keep the percentage alone. The dark pills of
+`tokyo-night` and `gruvbox-rainbow` render `█░` blocks fine.
+
+Bar width is a resolution limit: at `bar_width = 5` each cell is 20%, so anything
+under that fills a single cell. Widen the bar when you want small readings to be
+legible rather than merely visible.
+
 ## Modules
 
 | Module | Default | Description |
@@ -110,7 +131,9 @@ style = "fg:#11111b bg:#cba6f7 bold"
 | `context` | on | Context window usage with progress bar |
 | `session_timer` | off | Session elapsed time |
 | `lines_changed` | off | Lines added/removed |
-| `usage` | off | Plan usage limits (5-hour block and weekly) |
+| `usage` | off | Plan usage limits (5-hour block and weekly), from the payload |
+| `windows` | off | Same windows, read from Anthropic instead of the payload |
+| `credits` | off | Credit spend on usage-based seats, read from Anthropic |
 | `vim_mode` | off | Vim mode indicator (NORMAL, INSERT, etc.) |
 | `agent_name` | off | Agent name when running with `--agent` |
 
@@ -140,6 +163,56 @@ Template fields:
 format = "{{.Short}}"
 style = "bold"
 ```
+
+### Reading usage from Anthropic: `windows` and `credits`
+
+`usage` renders what Claude Code puts in the status line payload, which covers
+the 5-hour and weekly windows on Pro and Max. Two things it cannot cover:
+usage-based seats meter a **credit pool** the payload says nothing about, and
+the payload reflects what the session was told rather than the account.
+
+`windows` and `credits` read `/api/oauth/usage` directly instead, using the
+OAuth token Claude Code already holds in `~/.claude/.credentials.json`. The
+figures are Anthropic's own accounting, never estimated from token counts.
+
+```toml
+format = "$directory | $git_branch | $model | $context | $windows$credits"
+
+[windows]
+disabled = false
+
+[credits]
+disabled = false
+```
+
+Each renders nothing when it does not apply, so both can be left in the format
+string across plans: `credits` is empty on a plan without a credit pool, and
+`windows` is empty before the first reading arrives.
+
+The HTTP request never happens while rendering. Both modules read a cached
+reading (5 minutes) and, when it is stale, spawn a detached background process
+that refreshes it and outlives the render. A reading older than 30 minutes -
+usually an expired login - is marked with `⚠︎` rather than silently frozen.
+
+`windows` template fields:
+
+| Field | Description |
+|-------|-------------|
+| `{{.Name}}` | Window label (`5h`, `wk`) |
+| `{{.Pct}}` | Usage (0-100) |
+| `{{.Bar}}` | Progress bar |
+| `{{.Resets}}` | When it resets (clock time today, weekday otherwise) |
+
+`credits` template fields:
+
+| Field | Description |
+|-------|-------------|
+| `{{.Used}}` | Spend so far, in major units |
+| `{{.Limit}}` | The ceiling |
+| `{{.Pct}}` | Percentage of the pool used |
+| `{{.Bar}}` | Progress bar |
+| `{{.Currency}}` | Currency code |
+| `{{.Stale}}` | `⚠︎` when the reading is old, empty otherwise |
 
 ### Usage module
 
