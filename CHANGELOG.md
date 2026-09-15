@@ -28,6 +28,20 @@
 
 * **release:** publish the formula into the tap's Formula directory ([77a4856](https://github.com/frank-bee/claude-statusline/commit/77a4856bc215036d6928999fd476f476b6964741))
 
+## [0.10.0](https://github.com/frank-bee/claude-statusline/compare/v0.9.0...v0.10.0) (2026-09-15)
+
+First release of this fork.
+
+
+### Features
+
+* **anthropic:** read rate-limit windows and credit spend from Anthropic ([b1462ff](https://github.com/frank-bee/claude-statusline/commit/b1462ff))
+
+
+### Bug Fixes
+
+* **bar:** fill one cell for any percentage above zero ([b626bfb](https://github.com/frank-bee/claude-statusline/commit/b626bfb))
+
 ## [0.9.0](https://github.com/felipeelias/claude-statusline/compare/v0.8.0...v0.9.0) (2026-03-31)
 
 
