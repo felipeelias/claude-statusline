@@ -6,10 +6,13 @@ Configurable status line for [Claude Code](https://docs.anthropic.com/en/docs/cl
 
 > **This is a fork.** The original is
 > [felipeelias/claude-statusline](https://github.com/felipeelias/claude-statusline) by Felipe
-> Philipp, MIT-licensed, and this fork keeps that licence. It adds two modules that read live
-> usage from Anthropic — [`windows` and `credits`](#reading-usage-from-anthropic-windows-and-credits)
-> — plus a few fixes, and it tracks upstream. The changes are offered back upstream issue by
-> issue; anything that lands there disappears from this list.
+> Philipp, MIT-licensed, and this fork keeps that licence. It adds
+> [`windows` and `credits`](#reading-usage-from-anthropic-windows-and-credits), which read
+> usage from Anthropic's own API — worth it for the **credit pool** on usage-based seats,
+> which the status line payload does not report; on a plan without one, upstream's `usage`
+> module already tells you the same thing. Plus a few fixes, and it tracks upstream. The
+> changes are offered back upstream issue by issue; anything that lands there disappears
+> from this list.
 >
 > Binary, command and config paths are identical to upstream, so this installs as a drop-in
 > replacement — which also means the two formulae conflict. Pick one.
@@ -188,14 +191,23 @@ style = "bold"
 
 ### Reading usage from Anthropic: `windows` and `credits`
 
-`usage` renders what Claude Code puts in the status line payload, which covers
-the 5-hour and weekly windows on Pro and Max. Two things it cannot cover:
-usage-based seats meter a **credit pool** the payload says nothing about, and
-the payload reflects what the session was told rather than the account.
+**Use `usage` unless you have a credit pool.** It renders the `rate_limits`
+Claude Code puts in the status line payload: live, no HTTP call, no credentials
+read, nothing that can be rate-limited. On a measured Pro account the payload
+and `/api/oauth/usage` report the same two windows, so `windows` buys nothing
+there - it is `credits` that covers what the payload genuinely lacks.
 
-`windows` and `credits` read `/api/oauth/usage` directly instead, using the
-OAuth token Claude Code already holds in `~/.claude/.credentials.json`. The
-figures are Anthropic's own accounting, never estimated from token counts.
+`windows` and `credits` read `/api/oauth/usage` directly, using the OAuth token
+Claude Code already holds in `~/.claude/.credentials.json`. What that adds:
+
+| | `usage` | `windows` / `credits` |
+|---|---|---|
+| Source | status line payload | Anthropic's usage API |
+| Credit pool (usage-based seats) | not reported | `credits` reports it |
+| 5-hour and weekly windows | yes | yes, same figures |
+| HTTP request | none | one per 5 minutes, can be rate-limited |
+| Reads `~/.claude/.credentials.json` | no | yes |
+| Requires | Claude Code 2.1.80+ | an endpoint Anthropic does not document |
 
 ```toml
 format = "$directory | $git_branch | $model | $context | $windows$credits"
