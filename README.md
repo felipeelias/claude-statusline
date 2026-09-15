@@ -77,6 +77,10 @@ claude-statusline test
 claude-statusline themes
 ```
 
+`themes` previews every preset and then `usage`, `windows` and `credits` against a mock
+reading, so you can see what enabling them looks like before wiring up a real one. The mock
+lives in a throwaway directory; your own config and cached reading are untouched.
+
 ## Commands
 
 | Command | Description |
@@ -84,7 +88,7 @@ claude-statusline themes
 | `prompt` | Render the status line (also the default when no command is given) |
 | `init` | Create default config at `~/.config/claude-statusline/config.toml` |
 | `test` | Render with your config and mock data (for config iteration) |
-| `themes` | Preview all built-in presets with mock data |
+| `themes` | Preview all built-in presets, then the modules that are off by default, with mock data |
 
 Global flags: `--config / -c` to override config path, `--version`.
 

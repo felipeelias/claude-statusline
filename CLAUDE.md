@@ -47,7 +47,7 @@ the two keeps their config.
 go build ./... && go test ./... && golangci-lint run
 GOOS=windows go build ./...   # the detach path is per-platform; it breaks quietly here
 claude-statusline test        # render with mock data
-claude-statusline themes      # preview every preset
+claude-statusline themes      # preview every preset, and the off-by-default modules
 ```
 
 **Check the linter actually ran.** A golangci-lint built against an older Go than the local
@@ -69,6 +69,12 @@ Two invariants in `internal/anthropic`:
   endpoint and answers 429 with a `Retry-After` of nearly an hour; the original code retried on
   every render whose cache had expired, which sustained the limit and froze the displayed
   figure for its whole duration. Do not reintroduce a retry-per-render path.
+
+`themes` previews `windows` and `credits` by pointing `XDG_STATE_HOME` at a temporary
+directory holding a mock reading, then restoring it. That keeps the preview on the real render
+path with no preview-only seam in shipped code, and a cache written just now is fresh, so no
+network refresh fires. `TestThemesLeavesTheRealCacheAlone` pins both halves: the user's reading
+must survive, and the preview must not show it.
 
 **Verifying a reading is right, not merely rendered.** That a module renders is no evidence its
 number is correct — a frozen cache renders beautifully. Capture what Claude Code actually sends

@@ -135,6 +135,40 @@ func TestThemesCommand(t *testing.T) {
 	assert.Contains(t, result, "tokyo-night:")
 	assert.Contains(t, result, "gruvbox-rainbow:")
 	assert.Contains(t, result, "catppuccin:")
+
+	// The modules that are off by default are previewed too, so `themes` shows
+	// what enabling them looks like and not only what the presets ship with.
+	assert.Contains(t, result, "optional modules")
+	assert.Contains(t, result, "usage (from the Claude Code payload):")
+	assert.Contains(t, result, "windows (from Anthropic):")
+	assert.Contains(t, result, "credits (from Anthropic):")
+	assert.Contains(t, result, "$116/$200 (58%)", "the mock credit pool should render")
+	assert.Contains(t, result, "wk 63%", "the mock weekly window should render")
+}
+
+func TestThemesLeavesTheRealCacheAlone(t *testing.T) {
+	isolate(t)
+
+	state := filepath.Join(os.Getenv("XDG_STATE_HOME"), "claude-statusline")
+	require.NoError(t, os.MkdirAll(state, 0o700))
+
+	cache := filepath.Join(state, "usage.json")
+	original := `{"limits":[{"kind":"session","percent":7}],"spend":{"enabled":false}}`
+	require.NoError(t, os.WriteFile(cache, []byte(original), 0o600))
+
+	before := os.Getenv("XDG_STATE_HOME")
+
+	var stdout bytes.Buffer
+	app := appcli.New("test")
+	app.Writer = &stdout
+
+	require.NoError(t, app.Run([]string{"claude-statusline", "themes"}))
+
+	after, err := os.ReadFile(cache)
+	require.NoError(t, err)
+	assert.JSONEq(t, original, string(after), "previewing must not overwrite the user's reading")
+	assert.Equal(t, before, os.Getenv("XDG_STATE_HOME"), "XDG_STATE_HOME must be restored")
+	assert.NotContains(t, stdout.String(), "7%", "the preview shows mock data, not the real cache")
 }
 
 func TestVersionFlag(t *testing.T) {

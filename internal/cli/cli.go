@@ -2,6 +2,7 @@ package cli
 
 import (
 	"fmt"
+	"io"
 	"os"
 	"path/filepath"
 	"time"
@@ -192,10 +193,127 @@ func themesCommand() *ucli.Command {
 				_, _ = fmt.Fprintf(writer, "%s:\n  %s\n\n", name, output)
 			}
 
-			return nil
+			return previewModules(writer, data)
 		},
 	}
 }
+
+// previewModules renders the modules that are off by default, so \`themes\` shows
+// what enabling them looks like rather than only what the presets ship with.
+//
+// windows and credits read the usage cache, so the preview points XDG_STATE_HOME
+// at a throwaway directory holding a mock reading. That exercises the real render
+// path - no preview-only seam in the shipped code - and a cache written just now
+// is fresh, so nothing triggers a network refresh.
+func previewModules(writer io.Writer, data input.Data) error {
+	restore, err := mockUsageCache()
+	if err != nil {
+		// A preview is not worth failing the command over: the presets above
+		// have already rendered.
+		return nil
+	}
+	defer restore()
+
+	_, _ = fmt.Fprintf(writer, "optional modules (off by default, mock readings):\n\n")
+
+	for _, variant := range moduleVariants() {
+		output, renderErr := render.Render(variant.cfg, data)
+		if renderErr != nil {
+			return fmt.Errorf("rendering %s: %w", variant.name, renderErr)
+		}
+
+		_, _ = fmt.Fprintf(writer, "%s:\n  %s\n\n", variant.name, output)
+	}
+
+	return nil
+}
+
+type moduleVariant struct {
+	name string
+	cfg  config.Config
+}
+
+func moduleVariants() []moduleVariant {
+	usageCfg := config.Default()
+	usageCfg.Format = "$directory  $git_branch  $model  $context  $usage"
+	usageCfg.Usage.Disabled = false
+
+	windowsCfg := config.Default()
+	windowsCfg.Format = "$directory  $model  $windows"
+	windowsCfg.Windows.Disabled = false
+
+	creditsCfg := config.Default()
+	creditsCfg.Format = "$directory  $model  $credits"
+	creditsCfg.Credits.Disabled = false
+
+	bothCfg := config.Default()
+	bothCfg.Format = "$directory  $model  $windows  $credits"
+	bothCfg.Windows.Disabled = false
+	bothCfg.Credits.Disabled = false
+
+	return []moduleVariant{
+		{"usage (from the Claude Code payload)", usageCfg},
+		{"windows (from Anthropic)", windowsCfg},
+		{"credits (from Anthropic)", creditsCfg},
+		{"windows + credits", bothCfg},
+	}
+}
+
+const (
+	cacheDirPerms  = 0o700
+	cacheFilePerms = 0o600
+)
+
+// mockUsageCache writes a fake reading into a temporary XDG_STATE_HOME and
+// returns a function restoring the previous environment.
+func mockUsageCache() (func(), error) {
+	dir, err := os.MkdirTemp("", "claude-statusline-preview")
+	if err != nil {
+		return nil, err
+	}
+
+	cache := filepath.Join(dir, "claude-statusline")
+
+	err = os.MkdirAll(cache, cacheDirPerms)
+	if err != nil {
+		return nil, err
+	}
+
+	err = os.WriteFile(filepath.Join(cache, "usage.json"), []byte(mockUsageJSON), cacheFilePerms)
+	if err != nil {
+		return nil, err
+	}
+
+	previous, had := os.LookupEnv("XDG_STATE_HOME")
+
+	err = os.Setenv("XDG_STATE_HOME", dir)
+	if err != nil {
+		return nil, err
+	}
+
+	return func() {
+		if had {
+			_ = os.Setenv("XDG_STATE_HOME", previous)
+		} else {
+			_ = os.Unsetenv("XDG_STATE_HOME")
+		}
+
+		_ = os.RemoveAll(dir)
+	}, nil
+}
+
+const mockUsageJSON = `{
+  "limits": [
+    {"kind": "session", "percent": 42, "severity": "normal"},
+    {"kind": "weekly_all", "percent": 63, "severity": "warning"}
+  ],
+  "spend": {
+    "enabled": true,
+    "percent": 58,
+    "used": {"amount_minor": 11600, "currency": "USD", "exponent": 2},
+    "limit": {"amount_minor": 20000, "currency": "USD", "exponent": 2}
+  }
+}`
 
 //nolint:mnd // mock data uses literal values by design
 func mockInput() input.Data {
