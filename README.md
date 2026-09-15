@@ -1,29 +1,10 @@
 # claude-statusline
 
 Configurable status line for [Claude Code](https://docs.anthropic.com/en/docs/claude-code).
+Shows where you are, what you are running, and how much of your plan you have used — in one
+line, with no API key and no configuration to get started.
 
 ![claude-statusline](assets/screenshot.webp)
-
-> **This is a fork.** The original is
-> [felipeelias/claude-statusline](https://github.com/felipeelias/claude-statusline) by Felipe
-> Philipp, MIT-licensed, and this fork keeps that licence. It adds
-> [`windows` and `credits`](#reading-usage-from-anthropic-windows-and-credits), which read
-> usage from Anthropic's own API — worth it for the **credit pool** on usage-based seats,
-> which the status line payload does not report; on a plan without one, upstream's `usage`
-> module already tells you the same thing.
->
-> Also three fixes, each offered back upstream and each due to disappear from this list if it
-> lands: a progress bar no longer renders empty below one cell's worth
-> ([#60](https://github.com/felipeelias/claude-statusline/pull/60)), CI runs with per-job
-> permissions and without persisted checkout credentials
-> ([#61](https://github.com/felipeelias/claude-statusline/pull/61)), and the test suite no
-> longer reads or writes the developer's real `$HOME`
-> ([#59](https://github.com/felipeelias/claude-statusline/pull/59)). The fork tracks upstream
-> otherwise.
->
-> Binary, command and config paths are identical to upstream, so this is a drop-in
-> replacement — and for the same reason Homebrew will not link both at once. Uninstall one
-> before installing the other; your config carries over untouched.
 
 ## Installation
 
@@ -39,17 +20,6 @@ Or with Go:
 ```bash
 go install github.com/frank-bee/claude-statusline@latest
 ```
-
-Coming from upstream, uninstall it first — both provide a binary called
-`claude-statusline`, so Homebrew refuses to link the second one:
-
-```bash
-brew uninstall claude-statusline        # upstream's
-brew install frank-bee/tap/claude-statusline
-```
-
-Your `~/.config/claude-statusline/config.toml` carries over untouched; the paths are
-deliberately identical.
 
 ## Setup
 
@@ -201,25 +171,27 @@ format = "{{.Short}}"
 style = "bold"
 ```
 
-### Reading usage from Anthropic: `windows` and `credits`
+### Where usage figures come from
 
-**Use `usage` unless you have a credit pool.** It renders the `rate_limits`
-Claude Code puts in the status line payload: live, no HTTP call, no credentials
-read, nothing that can be rate-limited. On a measured Pro account the payload
-and `/api/oauth/usage` report the same two windows, so `windows` buys nothing
-there - it is `credits` that covers what the payload genuinely lacks.
+There are two sources, and they answer different questions.
 
-`windows` and `credits` read `/api/oauth/usage` directly, using the OAuth token
-Claude Code already holds in `~/.claude/.credentials.json`. What that adds:
+`usage` reads the `rate_limits` Claude Code puts in the status line payload. It is on by
+default, costs no request, reads no credentials, and cannot be rate-limited. For the 5-hour
+and weekly windows, this is all you need.
+
+`windows` and `credits` ask Anthropic's usage API directly, using the OAuth token Claude Code
+already holds in `~/.claude/.credentials.json`. The one thing they add is **`credits`**: the
+credit pool metered on usage-based seats, which the payload does not report at all. `windows`
+returns the same two windows `usage` already shows, so enable it only if you specifically want
+the account's own accounting.
 
 | | `usage` | `windows` / `credits` |
 |---|---|---|
 | Source | status line payload | Anthropic's usage API |
-| Credit pool (usage-based seats) | not reported | `credits` reports it |
+| Credit pool | not reported | `credits` reports it |
 | 5-hour and weekly windows | yes | yes, same figures |
 | HTTP request | none | one per 5 minutes, can be rate-limited |
-| Reads `~/.claude/.credentials.json` | no | yes |
-| Requires | Claude Code 2.1.80+ | an endpoint Anthropic does not document |
+| Reads credentials | no | yes |
 
 ```toml
 format = "$directory | $git_branch | $model | $context | $windows$credits"
@@ -231,29 +203,24 @@ disabled = false
 disabled = false
 ```
 
-Each renders nothing when it does not apply, so both can be left in the format
-string across plans: `credits` is empty on a plan without a credit pool, and
-`windows` is empty before the first reading arrives.
+Each renders nothing when it does not apply, so both can sit in a format string across plans:
+`credits` is empty on a plan without a credit pool, and `windows` is empty before the first
+reading arrives.
 
-The HTTP request never happens while rendering. Both modules read a cached
-reading (5 minutes) and, when it is stale, spawn a detached background process
-that refreshes it and outlives the render. The cache is
-`~/.local/state/claude-statusline/usage.json`; `claude-statusline refresh-usage`
-forces a refresh in the foreground and prints why one failed, which is the way
+The HTTP request never happens while rendering. Both modules read a cached reading (5 minutes)
+and, when it is stale, spawn a detached background process that refreshes it and outlives the
+render. The cache is `~/.local/state/claude-statusline/usage.json`; `claude-statusline
+refresh-usage` forces a refresh in the foreground and prints why one failed, which is the way
 to tell an expired login from a rate-limited endpoint.
 
-When a refresh fails, the next one waits: Anthropic rate-limits this endpoint and
-says for how long (`Retry-After`), and that is honoured, capped at an hour. Without
-it every render with an expired cache would retry, which is what provokes the limit
-and then keeps the reading frozen for its whole duration. One success ends the wait,
-and `claude-statusline refresh-usage` ignores it - an explicit request is not a
-retry storm.
+When a refresh fails, the next one waits: Anthropic rate-limits this endpoint and says for how
+long (`Retry-After`), and that is honoured, capped at an hour. One success ends the wait, and
+`claude-statusline refresh-usage` ignores it — an explicit request is not a retry storm.
 
-A reading older than 30 minutes - usually an expired login - is marked `⚠︎`
-rather than shown as current, by both modules. Both expose it as `{{.Stale}}`,
-so a custom format can place it or leave it out; leave `{{.Stale}}` out of a
-`windows` format and the marker is still appended at the end, so the warning
-cannot be lost by accident.
+A reading older than 30 minutes — usually an expired login — is marked `⚠︎` rather than shown
+as current, by both modules. Both expose it as `{{.Stale}}`, so a custom format can place it;
+leave `{{.Stale}}` out of a `windows` format and the marker is still appended at the end, so
+the warning cannot be lost by accident.
 
 `windows` template fields:
 
@@ -278,12 +245,8 @@ cannot be lost by accident.
 
 ### Usage module
 
-The `usage` module shows your Claude plan usage limits (5-hour rolling window and 7-day). It is
-**on by default in this fork**, in every preset: it reads `rate_limits` straight from the status
-line payload, so it costs no request and needs no credentials. Claude Code older than 2.1.80
-sends no `rate_limits` and the module renders empty — on a powerline preset that leaves the
-trailing separator with nothing in front of it, the same way an empty `$git_branch` does outside
-a repository. To turn it off:
+Shows your plan usage: the 5-hour rolling window and the 7-day one. On by default, in every
+preset. To turn it off:
 
 ```toml
 [usage]
@@ -308,8 +271,6 @@ To only show usage when it exceeds a threshold (e.g. 5-hour block above 70%, wee
 disabled = false
 format = '{{if ge .BlockPct 70.0}}{{.BlockBar}} {{printf "%.0f" .BlockPct}}%{{end}}{{if ge .WeeklyPct 80.0}} W:{{printf "%.0f" .WeeklyPct}}%{{end}}'
 ```
-
-The module renders empty if `rate_limits` is not present in the Claude Code payload (older versions).
 
 ### Vim mode module
 
@@ -385,11 +346,8 @@ Other statusline tools from the [awesome-claude-code](https://github.com/hesreal
 - [claudia-statusline](https://github.com/hagan/claudia-statusline)
 - [ccstatusline](https://github.com/sirmalloc/ccstatusline)
 
-## Contributors
-
-Upstream: [@felipeelias](https://github.com/felipeelias), [@sammcj](https://github.com/sammcj).
-
 ## License
 
-MIT — see [LICENSE](LICENSE). Copyright remains with the original author; this fork adds its
-own copyright line for the changes made here.
+MIT — see [LICENSE](LICENSE). Originally written by
+[Felipe Philipp](https://github.com/felipeelias); maintained here by
+[Frank Bernhardt](https://github.com/frank-bee).
