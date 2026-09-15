@@ -20,6 +20,7 @@ With Homebrew:
 
 ```bash
 brew install frank-bee/tap/claude-statusline
+brew upgrade claude-statusline          # later
 ```
 
 Or with Go:
@@ -27,6 +28,17 @@ Or with Go:
 ```bash
 go install github.com/frank-bee/claude-statusline@latest
 ```
+
+Coming from upstream, uninstall it first — both provide a binary called
+`claude-statusline`, so Homebrew refuses to link the second one:
+
+```bash
+brew uninstall claude-statusline        # upstream's
+brew install frank-bee/tap/claude-statusline
+```
+
+Your `~/.config/claude-statusline/config.toml` carries over untouched; the paths are
+deliberately identical.
 
 ## Setup
 

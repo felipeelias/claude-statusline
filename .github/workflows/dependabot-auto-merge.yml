@@ -1,7 +1,15 @@
 ---
 name: Dependabot auto-merge
 
-on: pull_request
+# Release PRs touch exactly these two files and nothing else. Excluding them
+# stops this workflow being queued for a pull request opened by a bot, which
+# GitHub holds for manual approval and then reports as a failed check - on
+# every release, for a job that would have been skipped anyway.
+on:
+  pull_request:
+    paths-ignore:
+      - CHANGELOG.md
+      - .release-please-manifest.json
 
 permissions: {}
 

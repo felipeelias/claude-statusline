@@ -64,7 +64,27 @@ gh pr create --repo felipeelias/claude-statusline --base main
 
 ## Releases
 
-release-please raises the release PR from conventional commits; merging it tags, and goreleaser
-builds the archives and pushes the formula to `frank-bee/homebrew-tap`. That push needs the
-repository secret `HOMEBREW_TAP_TOKEN` — a fine-grained PAT with `contents: write` on the tap
-repository and nothing else.
+Fully automated. release-please raises the release PR from conventional commits; merging it
+tags, and goreleaser builds the archives and pushes the formula into
+`frank-bee/homebrew-tap` under `Formula/`.
+
+The cross-repository push is authenticated by the **`claude-statusline-tap-publisher` GitHub
+App** (app id `4949256`, installed on `homebrew-tap` alone with `contents: write` and
+`metadata: read`). `actions/create-github-app-token` mints a token scoped to that one
+repository, and it expires an hour later. `GITHUB_TOKEN` cannot write to another repository,
+and a PAT would carry the whole account for the sake of one file.
+
+Repository config this depends on:
+
+| | |
+|---|---|
+| `TAP_APP_ID` | variable — the App's id |
+| `TAP_APP_PRIVATE_KEY` | secret — the App's private key |
+| Settings → Actions → Workflow permissions | "Allow GitHub Actions to create and approve pull requests" must be **on**, or release-please cannot open its PR |
+
+If the formula push 403s, check the App's installation still covers `homebrew-tap` — narrowing
+it to the wrong repository is the easy mistake, and the error says only "Resource not
+accessible by integration".
+
+`brew update` does not always pull a freshly changed tap. When a just-published formula is "not
+found", run `git -C $(brew --repo frank-bee/tap) pull`.
