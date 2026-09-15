@@ -16,8 +16,10 @@ FONT = f"{FONT_DIR}/JetBrainsMonoNerdFontMono-Regular.ttf"
 FONT_BOLD = f"{FONT_DIR}/JetBrainsMonoNerdFontMono-Bold.ttf"
 PT = 32
 CELL_W = 19.025
-LINE_H = 50
-PAD = 34
+LINE_H = 64      # generous, so powerline pills do not touch
+PAD_X = 44
+PAD_Y = 34
+RADIUS = 18
 BG = "#0f1117"
 FG = "#d8dee9"
 
@@ -59,22 +61,28 @@ def main():
         lines.pop()
     rows = [list(parse(l)) for l in lines]
     width_cells = max((sum(cells(t) for t, *_ in r) for r in rows), default=40)
-    w = int(width_cells * CELL_W + 2 * PAD)
-    h = int(len(rows) * LINE_H + 2 * PAD)
+    w = int(width_cells * CELL_W + 2 * PAD_X)
+    h = int(len(rows) * LINE_H + 2 * PAD_Y)
 
-    cmd = ["magick", "-size", f"{w}x{h}", f"xc:{BG}", "-pointsize", str(PT)]
+    cmd = ["magick", "-size", f"{w}x{h}", "xc:none", "-fill", BG,
+           "-draw", f"roundrectangle 0,0 {w-1},{h-1} {RADIUS},{RADIUS}",
+           "-pointsize", str(PT)]
     for row, runs in enumerate(rows):
         col = 0
-        top = PAD + row * LINE_H
-        baseline = top + LINE_H * 0.72
+        # Each pill is drawn a fixed height, centred in its row, so the gap
+        # between rows stays even however tall the line box is.
+        row_top = PAD_Y + row * LINE_H
+        pill_h = 46
+        top = row_top + (LINE_H - pill_h) / 2
+        baseline = top + pill_h * 0.72
         for text, fg, bg, bold in runs:
             if not text:
                 continue
-            x = PAD + col * CELL_W
+            x = PAD_X + col * CELL_W
             span = cells(text)
             if bg:
                 cmd += ["-fill", bg, "-draw",
-                        f"rectangle {x:.1f},{top:.1f} {x + span*CELL_W:.1f},{top+LINE_H:.1f}"]
+                        f"rectangle {x:.1f},{top:.1f} {x + span*CELL_W:.1f},{top+pill_h:.1f}"]
             # -annotate takes the string as its own argument, so no quoting
             # rules can eat a glyph the way -draw text does.
             cmd += ["-font", FONT_BOLD if bold else FONT, "-fill", fg or FG,

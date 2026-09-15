@@ -59,20 +59,22 @@ preset = "minimal"
 format = "$directory  $git_branch  $model  $context  $usage"
 [context]
 format = '{{.Bar}} {{printf "%.0f" .UsedPct}}%'
-bar_fill = "█"
-bar_empty = "░"
-bar_width = 8
+bar_style = "line"
+bar_width = 10
 thresholds = [ { above = 50, style = "yellow" }, { above = 90, style = "red" } ]
 [usage]
 format = '{{.BlockBar}} 5h {{printf "%.0f" .BlockPct}}% · {{.WeeklyBar}} wk {{printf "%.0f" .WeeklyPct}}%'
 style = "blue"
-bar_fill = "█"
-bar_empty = "░"
-bar_width = 8
+bar_style = "line"
+bar_width = 10
 TOML
-for p in default catppuccin tokyo-night gruvbox-rainbow; do
+for p in catppuccin gruvbox-rainbow; do
   render <<TOML
 preset = "$p"
+[context]
+bar_style = "line"
+[usage]
+bar_style = "line"
 TOML
 done
 } > "$work/preview.ansi"

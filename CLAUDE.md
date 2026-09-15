@@ -108,7 +108,7 @@ gh pr create --repo felipeelias/claude-statusline --base main
 ## The README image
 
 `assets/preview.png` is generated, not screenshotted: `./scripts/render-preview.sh` renders the
-status line in five presets against fake data (a throwaway repo, a mock usage cache) and pipes
+status line in three presets against fake data (a throwaway repo, a mock usage cache) and pipes
 the ANSI through `scripts/ansi2png.py`, which draws each coloured run at an exact cell position
 with a Nerd Font. Regenerate it rather than taking a new screenshot, so the image never carries
 a real path, branch or reading.
