@@ -7,6 +7,11 @@ A fork of [felipeelias/claude-statusline](https://github.com/felipeelias/claude-
 (MIT). Upstream stays the source of truth for everything except the `windows` and `credits`
 modules and the fixes listed in `git log upstream/main..main`.
 
+`usage` is **on by default here**, in `Default()` and in every preset — upstream ships it off.
+Two gates decide whether any module renders: `Disabled`, and whether the format string names it.
+Setting one without the other renders nothing and looks like a broken module;
+`TestEveryPresetShowsUsage` pins both for every preset.
+
 **Which usage module to reach for.** Upstream's `usage` reads the `rate_limits` Claude Code
 puts in the payload: live, no HTTP, nothing to rate-limit. Measured against a real payload,
 `/api/oauth/usage` returns the *same* two windows, so `windows` is redundant with `usage`;

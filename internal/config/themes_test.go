@@ -5,6 +5,7 @@ import (
 
 	"github.com/frank-bee/claude-statusline/internal/config"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestPresetNames(t *testing.T) {
@@ -55,13 +56,15 @@ func TestApplyPresetCapsulePowerline(t *testing.T) {
 func TestApplyPresetPastelTrailingArrow(t *testing.T) {
 	cfg, _ := config.ApplyPreset("pastel-powerline")
 	// Pastel Powerline ends with right arrow (not rounded half-circle), last color is dark blue
-	assert.Contains(t, cfg.Format, "\ue0b0 ](fg:#33658A)")
+	assert.Contains(t, cfg.Format, "\ue0b0 ](fg:#7B506F)",
+		"the trailing arrow takes the colour of the last segment, now $usage")
 }
 
 func TestApplyPresetGruvboxTrailingRounded(t *testing.T) {
 	cfg, _ := config.ApplyPreset("gruvbox-rainbow")
 	// Gruvbox ends with rounded right half-circle
-	assert.Contains(t, cfg.Format, "\ue0b4 ](fg:#3c3836)")
+	assert.Contains(t, cfg.Format, "\ue0b4 ](fg:#504945)",
+		"the trailing glyph takes the colour of the last segment, now $usage")
 }
 
 func TestApplyPresetTokyoNight(t *testing.T) {
@@ -94,5 +97,18 @@ func TestApplyPresetKeepsUsageModules(t *testing.T) {
 		assert.Positive(t, cfg.Windows.BarWidth, name)
 		assert.NotEmpty(t, cfg.Credits.Format, name)
 		assert.Positive(t, cfg.Credits.BarWidth, name)
+	}
+}
+
+func TestEveryPresetShowsUsage(t *testing.T) {
+	// Two independent gates decide whether a module renders: it must not be
+	// disabled, and the format string must reference it. A preset that sets one
+	// without the other renders nothing and looks like a broken module.
+	for _, name := range config.PresetNames() {
+		cfg, ok := config.ApplyPreset(name)
+		require.True(t, ok, name)
+
+		assert.False(t, cfg.Usage.Disabled, "%s: usage must stay enabled", name)
+		assert.Contains(t, cfg.Format, "$usage", "%s: usage must be in the format string", name)
 	}
 }

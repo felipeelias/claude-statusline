@@ -169,7 +169,7 @@ const (
 func Default() Config {
 	return Config{
 		Preset: "default",
-		Format: "$directory | $git_branch | $model | $cost | $context",
+		Format: "$directory | $git_branch | $model | $cost | $context | $usage",
 		Model: ModelConfig{
 			Format: "{{.DisplayName}}",
 			Style:  "bold",
@@ -223,9 +223,13 @@ func Default() Config {
 			Disabled: true,
 		},
 		Usage: UsageConfig{
-			Format:   `{{.BlockBar}} {{printf "%.0f" .BlockPct}}% W:{{printf "%.0f" .WeeklyPct}}%`,
-			Style:    "green",
-			Disabled: true,
+			Format: `{{.BlockBar}} {{printf "%.0f" .BlockPct}}% W:{{printf "%.0f" .WeeklyPct}}%`,
+			Style:  "green",
+			// On by default: it reads the rate_limits Claude Code already puts
+			// in the payload, so it costs no request and nothing to configure.
+			// Claude Code older than 2.1.80 sends no rate_limits and the module
+			// renders empty, which is why this is safe to default on.
+			Disabled: false,
 			BarWidth: defaultBarWidth,
 			Thresholds: []Threshold{
 				{Above: usageWarnThreshold, Style: "yellow"},

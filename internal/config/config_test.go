@@ -13,7 +13,9 @@ import (
 func TestDefault(t *testing.T) {
 	cfg := config.Default()
 	assert.Equal(t, "default", cfg.Preset)
-	assert.Equal(t, "$directory | $git_branch | $model | $cost | $context", cfg.Format)
+	assert.Equal(t, "$directory | $git_branch | $model | $cost | $context | $usage", cfg.Format)
+	assert.False(t, cfg.Usage.Disabled,
+		"usage is on by default: it reads the payload, so it costs no request")
 	assert.Equal(t, "cyan", cfg.Directory.Style)
 	assert.Equal(t, "bold", cfg.Model.Style)
 	assert.False(t, cfg.Model.Disabled)

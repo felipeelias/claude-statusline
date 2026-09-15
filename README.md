@@ -99,7 +99,7 @@ Config file location: `~/.config/claude-statusline/config.toml`
 Works with zero config. The default format is:
 
 ```toml
-format = "$directory | $git_branch | $model | $cost | $context"
+format = "$directory | $git_branch | $model | $cost | $context | $usage"
 ```
 
 ## Presets
@@ -168,7 +168,7 @@ legible rather than merely visible.
 | `context` | on | Context window usage with progress bar |
 | `session_timer` | off | Session elapsed time |
 | `lines_changed` | off | Lines added/removed |
-| `usage` | off | Plan usage limits (5-hour block and weekly), from the payload |
+| `usage` | **on** | Plan usage limits (5-hour block and weekly), from the payload |
 | `windows` | off | Same windows, read from Anthropic instead of the payload |
 | `credits` | off | Credit spend on usage-based seats, read from Anthropic |
 | `vim_mode` | off | Vim mode indicator (NORMAL, INSERT, etc.) |
@@ -278,13 +278,16 @@ cannot be lost by accident.
 
 ### Usage module
 
-The `usage` module shows your Claude plan usage limits (5-hour rolling window and 7-day). Requires Claude Code 2.1.80+ which provides `rate_limits` in the status line payload.
+The `usage` module shows your Claude plan usage limits (5-hour rolling window and 7-day). It is
+**on by default in this fork**, in every preset: it reads `rate_limits` straight from the status
+line payload, so it costs no request and needs no credentials. Claude Code older than 2.1.80
+sends no `rate_limits` and the module renders empty — on a powerline preset that leaves the
+trailing separator with nothing in front of it, the same way an empty `$git_branch` does outside
+a repository. To turn it off:
 
 ```toml
-format = "$directory | $git_branch | $model | $cost | $context | $usage"
-
 [usage]
-disabled = false
+disabled = true
 ```
 
 Template fields:
