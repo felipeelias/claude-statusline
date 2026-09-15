@@ -192,11 +192,11 @@ func TestRefresh(t *testing.T) {
 	t.Run("a rate-limited refresh backs off for as long as the server asks", func(t *testing.T) {
 		attempts := 0
 
-		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		server := httptest.NewServer(http.HandlerFunc(func(writer http.ResponseWriter, _ *http.Request) {
 			attempts++
 
-			w.Header().Set("Retry-After", "3368")
-			w.WriteHeader(http.StatusTooManyRequests)
+			writer.Header().Set("Retry-After", "3368")
+			writer.WriteHeader(http.StatusTooManyRequests)
 		}))
 		defer server.Close()
 
@@ -221,8 +221,8 @@ func TestRefresh(t *testing.T) {
 	})
 
 	t.Run("a failure with no Retry-After still backs off", func(t *testing.T) {
-		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
-			w.WriteHeader(http.StatusInternalServerError)
+		server := httptest.NewServer(http.HandlerFunc(func(writer http.ResponseWriter, _ *http.Request) {
+			writer.WriteHeader(http.StatusInternalServerError)
 		}))
 		defer server.Close()
 
@@ -245,15 +245,15 @@ func TestRefresh(t *testing.T) {
 	t.Run("one success ends the backoff", func(t *testing.T) {
 		fail := true
 
-		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		server := httptest.NewServer(http.HandlerFunc(func(writer http.ResponseWriter, _ *http.Request) {
 			if fail {
-				w.Header().Set("Retry-After", "1")
-				w.WriteHeader(http.StatusTooManyRequests)
+				writer.Header().Set("Retry-After", "1")
+				writer.WriteHeader(http.StatusTooManyRequests)
 
 				return
 			}
 
-			_, _ = w.Write([]byte(sampleResponse))
+			_, _ = writer.Write([]byte(sampleResponse))
 		}))
 		defer server.Close()
 

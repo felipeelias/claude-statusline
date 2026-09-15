@@ -307,13 +307,13 @@ func backoffActive() bool {
 
 // setBackoff records when a refresh may next be attempted. A failure with no
 // usable Retry-After still backs off, so a broken endpoint is not hammered.
-func setBackoff(d time.Duration) {
-	if d <= 0 {
-		d = defaultBackoff
+func setBackoff(wait time.Duration) {
+	if wait <= 0 {
+		wait = defaultBackoff
 	}
 
-	if d > maxBackoff {
-		d = maxBackoff
+	if wait > maxBackoff {
+		wait = maxBackoff
 	}
 
 	dir, err := stateDir()
@@ -330,7 +330,7 @@ func setBackoff(d time.Duration) {
 		return
 	}
 
-	_ = os.WriteFile(path, []byte(time.Now().Add(d).Format(time.RFC3339)), filePerms)
+	_ = os.WriteFile(path, []byte(time.Now().Add(wait).Format(time.RFC3339)), filePerms)
 }
 
 // clearBackoff is called after a reading arrives, so one success ends the wait.
