@@ -213,8 +213,15 @@ string across plans: `credits` is empty on a plan without a credit pool, and
 
 The HTTP request never happens while rendering. Both modules read a cached
 reading (5 minutes) and, when it is stale, spawn a detached background process
-that refreshes it and outlives the render. A reading older than 30 minutes -
-usually an expired login - is marked with `⚠︎` rather than silently frozen.
+that refreshes it and outlives the render. The cache is
+`~/.local/state/claude-statusline/usage.json`; `claude-statusline refresh-usage`
+forces a refresh in the foreground and prints why one failed, which is the way
+to tell an expired login from a rate-limited endpoint.
+
+`credits` additionally exposes `{{.Stale}}`, which renders `⚠︎` once a reading is
+older than 30 minutes - usually an expired login - rather than showing a frozen
+figure as current. `windows` has no equivalent field today and renders whatever
+the cache holds.
 
 `windows` template fields:
 
