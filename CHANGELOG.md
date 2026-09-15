@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.13.0](https://github.com/frank-bee/claude-statusline/compare/v0.12.0...v0.13.0) (2026-09-15)
+
+
+### ⚠ BREAKING CHANGES
+
+* **usage:** the default format and every preset now include $usage. Set `disabled = true` under `[usage]` to get the previous line back.
+
+### Features
+
+* **usage:** show plan usage by default, in every preset ([c4de584](https://github.com/frank-bee/claude-statusline/commit/c4de5846d5b3e94d57e6ac89056942f1898b9b12))
+
+
+### Miscellaneous Chores
+
+* release as 0.13.0 ([e3ae444](https://github.com/frank-bee/claude-statusline/commit/e3ae4444c0ef2c76186c2ad468c3ca6de3237119))
+
 ## [0.12.0](https://github.com/frank-bee/claude-statusline/compare/v0.11.1...v0.12.0) (2026-09-15)
 
 
