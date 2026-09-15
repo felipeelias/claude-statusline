@@ -19,6 +19,8 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strconv"
+	"strings"
 	"testing"
 	"time"
 )
@@ -28,6 +30,12 @@ const (
 	dirPerms      = 0o700
 	filePerms     = 0o600
 	lockStaleness = time.Minute
+
+	// maxBackoff caps what a Retry-After is allowed to buy. A server asking for
+	// a day off should not silence the reading for a day.
+	maxBackoff = time.Hour
+	// defaultBackoff applies when a refresh fails without saying when to return.
+	defaultBackoff = 5 * time.Minute
 )
 
 // baseURL is where the readings come from, and refresh is what a stale cache
@@ -100,7 +108,7 @@ func Load() (*Usage, error) {
 	}
 
 	info, statErr := os.Stat(path)
-	if statErr != nil || time.Since(info.ModTime()) > TTL {
+	if (statErr != nil || time.Since(info.ModTime()) > TTL) && !backoffActive() {
 		refresh()
 	}
 
@@ -139,10 +147,14 @@ func Refresh() error {
 		return err
 	}
 
-	body, err := get(token, "usage")
+	body, retryAfter, err := get(token, "usage")
 	if err != nil {
+		setBackoff(retryAfter)
+
 		return err
 	}
+
+	clearBackoff()
 
 	path, err := cachePath()
 	if err != nil {
@@ -160,13 +172,16 @@ func Refresh() error {
 	return os.Rename(tmp, path)
 }
 
-func get(token, endpoint string) ([]byte, error) {
+// get returns the body, and how long the server asked us to wait before trying
+// again. The wait is meaningful even on success paths that fail later, so it is
+// returned rather than folded into the error.
+func get(token, endpoint string) ([]byte, time.Duration, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), fetchTimeout)
 	defer cancel()
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, baseURL+"/"+endpoint, nil)
 	if err != nil {
-		return nil, err
+		return nil, 0, err
 	}
 
 	req.Header.Set("Authorization", "Bearer "+token)
@@ -174,15 +189,27 @@ func get(token, endpoint string) ([]byte, error) {
 
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
-		return nil, fmt.Errorf("fetching %s: %w", endpoint, err)
+		return nil, 0, fmt.Errorf("fetching %s: %w", endpoint, err)
 	}
 	defer func() { _ = resp.Body.Close() }()
 
 	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("fetching %s: %s", endpoint, resp.Status)
+		return nil, retryAfter(resp), fmt.Errorf("fetching %s: %s", endpoint, resp.Status)
 	}
 
-	return io.ReadAll(resp.Body)
+	body, err := io.ReadAll(resp.Body)
+
+	return body, 0, err
+}
+
+// retryAfter reads the header of that name, which Anthropic sends as seconds.
+func retryAfter(resp *http.Response) time.Duration {
+	seconds, err := strconv.Atoi(strings.TrimSpace(resp.Header.Get("Retry-After")))
+	if err != nil || seconds <= 0 {
+		return 0
+	}
+
+	return time.Duration(seconds) * time.Second
 }
 
 // accessToken reads the OAuth token Claude Code already holds. Nothing here
@@ -243,6 +270,77 @@ func cachePath() (string, error) {
 	}
 
 	return filepath.Join(dir, "usage.json"), nil
+}
+
+// backoffPath holds the time before which no refresh should be attempted.
+// Without it, a rate-limited endpoint is retried on every render whose cache
+// has expired - which is what provokes the rate limit in the first place, and
+// leaves the reading frozen for as long as the limit lasts.
+func backoffPath() (string, error) {
+	dir, err := stateDir()
+	if err != nil {
+		return "", err
+	}
+
+	return filepath.Join(dir, "backoff"), nil
+}
+
+// backoffActive reports whether a previous failure asked us to stay away.
+func backoffActive() bool {
+	path, err := backoffPath()
+	if err != nil {
+		return false
+	}
+
+	raw, err := os.ReadFile(path)
+	if err != nil {
+		return false
+	}
+
+	until, err := time.Parse(time.RFC3339, strings.TrimSpace(string(raw)))
+	if err != nil {
+		return false
+	}
+
+	return time.Now().Before(until)
+}
+
+// setBackoff records when a refresh may next be attempted. A failure with no
+// usable Retry-After still backs off, so a broken endpoint is not hammered.
+func setBackoff(d time.Duration) {
+	if d <= 0 {
+		d = defaultBackoff
+	}
+
+	if d > maxBackoff {
+		d = maxBackoff
+	}
+
+	dir, err := stateDir()
+	if err != nil {
+		return
+	}
+
+	if os.MkdirAll(dir, dirPerms) != nil {
+		return
+	}
+
+	path, err := backoffPath()
+	if err != nil {
+		return
+	}
+
+	_ = os.WriteFile(path, []byte(time.Now().Add(d).Format(time.RFC3339)), filePerms)
+}
+
+// clearBackoff is called after a reading arrives, so one success ends the wait.
+func clearBackoff() {
+	path, err := backoffPath()
+	if err != nil {
+		return
+	}
+
+	_ = os.Remove(path)
 }
 
 // takeLock stops a burst of renders from firing parallel refreshes. A lock left

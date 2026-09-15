@@ -47,6 +47,22 @@ func seedCache(t *testing.T, body string, age time.Duration) string {
 	return path
 }
 
+// writeCache seeds a cache of a given age into an existing state directory,
+// where seedCache would create a fresh one and lose the backoff written beside
+// it.
+func writeCache(t *testing.T, state, body string, age time.Duration) {
+	t.Helper()
+
+	dir := filepath.Join(state, "claude-statusline")
+	require.NoError(t, os.MkdirAll(dir, 0o700))
+
+	path := filepath.Join(dir, "usage.json")
+	require.NoError(t, os.WriteFile(path, []byte(body), 0o600))
+
+	modTime := time.Now().Add(-age)
+	require.NoError(t, os.Chtimes(path, modTime, modTime))
+}
+
 func TestMoney_Major(t *testing.T) {
 	tests := map[string]struct {
 		money    anthropic.Money
@@ -171,6 +187,93 @@ func TestRefresh(t *testing.T) {
 		written, err := os.ReadFile(filepath.Join(state, "claude-statusline", "usage.json"))
 		require.NoError(t, err)
 		assert.JSONEq(t, sampleResponse, string(written))
+	})
+
+	t.Run("a rate-limited refresh backs off for as long as the server asks", func(t *testing.T) {
+		attempts := 0
+
+		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+			attempts++
+
+			w.Header().Set("Retry-After", "3368")
+			w.WriteHeader(http.StatusTooManyRequests)
+		}))
+		defer server.Close()
+
+		state := t.TempDir()
+		t.Setenv("XDG_STATE_HOME", state)
+		withCredentials(t)
+		anthropic.SetBaseURL(t, server.URL)
+
+		require.Error(t, anthropic.Refresh())
+		assert.Equal(t, 1, attempts)
+
+		// A stale cache would normally trigger a refresh on the next render.
+		// While the server is asking us to stay away, it must not: retrying on
+		// every render is what sustains the rate limit and freezes the reading.
+		writeCache(t, state, sampleResponse, time.Hour)
+
+		calls := anthropic.SuppressRefresh(t)
+
+		_, err := anthropic.Load()
+		require.NoError(t, err)
+		assert.Equal(t, 0, *calls, "no refresh may be attempted while backing off")
+	})
+
+	t.Run("a failure with no Retry-After still backs off", func(t *testing.T) {
+		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+			w.WriteHeader(http.StatusInternalServerError)
+		}))
+		defer server.Close()
+
+		state := t.TempDir()
+		t.Setenv("XDG_STATE_HOME", state)
+		withCredentials(t)
+		anthropic.SetBaseURL(t, server.URL)
+
+		require.Error(t, anthropic.Refresh())
+
+		writeCache(t, state, sampleResponse, time.Hour)
+
+		calls := anthropic.SuppressRefresh(t)
+
+		_, err := anthropic.Load()
+		require.NoError(t, err)
+		assert.Equal(t, 0, *calls)
+	})
+
+	t.Run("one success ends the backoff", func(t *testing.T) {
+		fail := true
+
+		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+			if fail {
+				w.Header().Set("Retry-After", "1")
+				w.WriteHeader(http.StatusTooManyRequests)
+
+				return
+			}
+
+			_, _ = w.Write([]byte(sampleResponse))
+		}))
+		defer server.Close()
+
+		state := t.TempDir()
+		t.Setenv("XDG_STATE_HOME", state)
+		withCredentials(t)
+		anthropic.SetBaseURL(t, server.URL)
+
+		require.Error(t, anthropic.Refresh())
+
+		fail = false
+		require.NoError(t, anthropic.Refresh())
+
+		writeCache(t, state, sampleResponse, time.Hour)
+
+		calls := anthropic.SuppressRefresh(t)
+
+		_, err := anthropic.Load()
+		require.NoError(t, err)
+		assert.Equal(t, 1, *calls, "a successful reading clears the wait")
 	})
 
 	t.Run("the cache file is not world-readable", func(t *testing.T) {

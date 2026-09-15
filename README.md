@@ -218,6 +218,13 @@ that refreshes it and outlives the render. The cache is
 forces a refresh in the foreground and prints why one failed, which is the way
 to tell an expired login from a rate-limited endpoint.
 
+When a refresh fails, the next one waits: Anthropic rate-limits this endpoint and
+says for how long (`Retry-After`), and that is honoured, capped at an hour. Without
+it every render with an expired cache would retry, which is what provokes the limit
+and then keeps the reading frozen for its whole duration. One success ends the wait,
+and `claude-statusline refresh-usage` ignores it - an explicit request is not a
+retry storm.
+
 A reading older than 30 minutes - usually an expired login - is marked `⚠︎`
 rather than shown as current, by both modules. Both expose it as `{{.Stale}}`,
 so a custom format can place it or leave it out; leave `{{.Stale}}` out of a
