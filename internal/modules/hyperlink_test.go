@@ -5,9 +5,9 @@ import (
 	"os/exec"
 	"testing"
 
-	"github.com/felipeelias/claude-statusline/internal/config"
-	"github.com/felipeelias/claude-statusline/internal/input"
-	"github.com/felipeelias/claude-statusline/internal/modules"
+	"github.com/frank-bee/claude-statusline/internal/config"
+	"github.com/frank-bee/claude-statusline/internal/input"
+	"github.com/frank-bee/claude-statusline/internal/modules"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )

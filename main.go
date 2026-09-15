@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	appcli "github.com/felipeelias/claude-statusline/internal/cli"
+	appcli "github.com/frank-bee/claude-statusline/internal/cli"
 )
 
 var version = "dev"

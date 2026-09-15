@@ -3,8 +3,8 @@ package modules
 import (
 	"fmt"
 
-	"github.com/felipeelias/claude-statusline/internal/config"
-	"github.com/felipeelias/claude-statusline/internal/input"
+	"github.com/frank-bee/claude-statusline/internal/config"
+	"github.com/frank-bee/claude-statusline/internal/input"
 )
 
 // LinesChangedModule renders lines added and removed with independent styles.

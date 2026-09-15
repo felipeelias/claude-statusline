@@ -5,8 +5,8 @@ import (
 	"strings"
 	"text/template"
 
-	"github.com/felipeelias/claude-statusline/internal/config"
-	"github.com/felipeelias/claude-statusline/internal/style"
+	"github.com/frank-bee/claude-statusline/internal/config"
+	"github.com/frank-bee/claude-statusline/internal/style"
 )
 
 // renderTemplate executes a Go text/template with the given data and returns the result.

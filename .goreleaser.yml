@@ -19,10 +19,10 @@ builds:
 brews:
   - name: claude-statusline
     repository:
-      owner: felipeelias
+      owner: frank-bee
       name: homebrew-tap
       token: "{{ .Env.TAP_GITHUB_TOKEN }}"
-    homepage: https://github.com/felipeelias/claude-statusline
+    homepage: https://github.com/frank-bee/claude-statusline
     description: Configurable status line for Claude Code
     license: MIT
 

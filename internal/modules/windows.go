@@ -4,9 +4,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/felipeelias/claude-statusline/internal/anthropic"
-	"github.com/felipeelias/claude-statusline/internal/config"
-	"github.com/felipeelias/claude-statusline/internal/input"
+	"github.com/frank-bee/claude-statusline/internal/anthropic"
+	"github.com/frank-bee/claude-statusline/internal/config"
+	"github.com/frank-bee/claude-statusline/internal/input"
 )
 
 // windowNames maps the API's window kinds to the short labels the status line

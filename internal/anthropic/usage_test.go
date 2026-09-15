@@ -8,7 +8,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/felipeelias/claude-statusline/internal/anthropic"
+	"github.com/frank-bee/claude-statusline/internal/anthropic"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )

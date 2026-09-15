@@ -4,7 +4,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/felipeelias/claude-statusline/internal/input"
+	"github.com/frank-bee/claude-statusline/internal/input"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )

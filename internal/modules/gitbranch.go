@@ -4,8 +4,8 @@ import (
 	"os/exec"
 	"strings"
 
-	"github.com/felipeelias/claude-statusline/internal/config"
-	"github.com/felipeelias/claude-statusline/internal/input"
+	"github.com/frank-bee/claude-statusline/internal/config"
+	"github.com/frank-bee/claude-statusline/internal/input"
 )
 
 // GitBranchModule renders the current git branch name with optional status indicators.

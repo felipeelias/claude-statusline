@@ -7,7 +7,7 @@ import (
 	"strings"
 	"testing"
 
-	appcli "github.com/felipeelias/claude-statusline/internal/cli"
+	appcli "github.com/frank-bee/claude-statusline/internal/cli"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
