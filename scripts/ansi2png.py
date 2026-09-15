@@ -16,9 +16,13 @@ FONT = f"{FONT_DIR}/JetBrainsMonoNerdFontMono-Regular.ttf"
 FONT_BOLD = f"{FONT_DIR}/JetBrainsMonoNerdFontMono-Bold.ttf"
 PT = 32
 CELL_W = 19.025
-LINE_H = 88      # pill height plus a full pill-height of air between rows
-PAD_X = 44
-PAD_Y = 40
+# One gap value everywhere: between rows, and from the card edge to the
+# outermost row. Derived rather than tuned separately, so they cannot drift.
+PILL_H = 46
+GAP = 42
+LINE_H = PILL_H + GAP
+PAD_X = GAP
+PAD_Y = GAP - (LINE_H - PILL_H) // 2
 RADIUS = 18
 BG = "#0f1117"
 FG = "#d8dee9"
@@ -72,7 +76,7 @@ def main():
         # Each pill is drawn a fixed height, centred in its row, so the gap
         # between rows stays even however tall the line box is.
         row_top = PAD_Y + row * LINE_H
-        pill_h = 46      # the pill itself; the rest of LINE_H is the gap
+        pill_h = PILL_H
         top = row_top + (LINE_H - pill_h) / 2
         baseline = top + pill_h * 0.72
         for text, fg, bg, bold in runs:
