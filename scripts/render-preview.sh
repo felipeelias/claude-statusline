@@ -68,15 +68,13 @@ style = "blue"
 bar_style = "line"
 bar_width = 10
 TOML
-for p in catppuccin gruvbox-rainbow; do
-  render <<TOML
-preset = "$p"
+render <<'TOML'
+preset = "catppuccin"
 [context]
 bar_style = "line"
 [usage]
 bar_style = "line"
 TOML
-done
 } > "$work/preview.ansi"
 
 python3 "$here/scripts/ansi2png.py" "$here/assets/preview.png" < "$work/preview.ansi"
