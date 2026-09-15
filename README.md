@@ -10,12 +10,20 @@ Configurable status line for [Claude Code](https://docs.anthropic.com/en/docs/cl
 > [`windows` and `credits`](#reading-usage-from-anthropic-windows-and-credits), which read
 > usage from Anthropic's own API — worth it for the **credit pool** on usage-based seats,
 > which the status line payload does not report; on a plan without one, upstream's `usage`
-> module already tells you the same thing. Plus a few fixes, and it tracks upstream. The
-> changes are offered back upstream issue by issue; anything that lands there disappears
-> from this list.
+> module already tells you the same thing.
 >
-> Binary, command and config paths are identical to upstream, so this installs as a drop-in
-> replacement — which also means the two formulae conflict. Pick one.
+> Also three fixes, each offered back upstream and each due to disappear from this list if it
+> lands: a progress bar no longer renders empty below one cell's worth
+> ([#60](https://github.com/felipeelias/claude-statusline/pull/60)), CI runs with per-job
+> permissions and without persisted checkout credentials
+> ([#61](https://github.com/felipeelias/claude-statusline/pull/61)), and the test suite no
+> longer reads or writes the developer's real `$HOME`
+> ([#59](https://github.com/felipeelias/claude-statusline/pull/59)). The fork tracks upstream
+> otherwise.
+>
+> Binary, command and config paths are identical to upstream, so this is a drop-in
+> replacement — and for the same reason Homebrew will not link both at once. Uninstall one
+> before installing the other; your config carries over untouched.
 
 ## Installation
 
