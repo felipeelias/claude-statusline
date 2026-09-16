@@ -34,11 +34,9 @@ func seedCache(t *testing.T, body string, age time.Duration) string {
 
 	state := t.TempDir()
 	t.Setenv("XDG_STATE_HOME", state)
+	t.Setenv("CLAUDE_CONFIG_DIR", "")
 
-	dir := filepath.Join(state, "claude-statusline")
-	require.NoError(t, os.MkdirAll(dir, 0o700))
-
-	path := filepath.Join(dir, "usage.json")
+	path := cachePath(t)
 	require.NoError(t, os.WriteFile(path, []byte(body), 0o600))
 
 	modTime := time.Now().Add(-age)
@@ -47,16 +45,25 @@ func seedCache(t *testing.T, body string, age time.Duration) string {
 	return path
 }
 
+// cachePath asks the package where the reading for the current account lives.
+// The layout is per-account, so a test that builds the path itself would be
+// asserting against a directory the code no longer uses.
+func cachePath(t *testing.T) string {
+	t.Helper()
+
+	path, err := anthropic.CachePath()
+	require.NoError(t, err)
+
+	return path
+}
+
 // writeCache seeds a cache of a given age into an existing state directory,
 // where seedCache would create a fresh one and lose the backoff written beside
 // it.
-func writeCache(t *testing.T, state, body string, age time.Duration) {
+func writeCache(t *testing.T, _, body string, age time.Duration) {
 	t.Helper()
 
-	dir := filepath.Join(state, "claude-statusline")
-	require.NoError(t, os.MkdirAll(dir, 0o700))
-
-	path := filepath.Join(dir, "usage.json")
+	path := cachePath(t)
 	require.NoError(t, os.WriteFile(path, []byte(body), 0o600))
 
 	modTime := time.Now().Add(-age)
@@ -150,13 +157,18 @@ func TestLoad(t *testing.T) {
 }
 
 func TestRefresh(t *testing.T) {
-	// Refresh reads the token from the real home directory, so these tests
-	// give it one of their own.
+	// Refresh reads the credentials of whichever account Claude Code is signed
+	// in as, so these tests give it a home and a Keychain of their own. Without
+	// the Keychain suppressed, a temporary HOME still resolves the default
+	// Keychain item, which on a developer machine is a real live token.
 	withCredentials := func(t *testing.T) {
 		t.Helper()
 
+		anthropic.SuppressKeychain(t)
+
 		home := t.TempDir()
 		t.Setenv("HOME", home)
+		t.Setenv("CLAUDE_CONFIG_DIR", "")
 		require.NoError(t, os.MkdirAll(filepath.Join(home, ".claude"), 0o700))
 		require.NoError(t, os.WriteFile(
 			filepath.Join(home, ".claude", ".credentials.json"),
@@ -184,7 +196,7 @@ func TestRefresh(t *testing.T) {
 		assert.Equal(t, "Bearer test-token", gotAuth, "the token goes in the header, nowhere else")
 		assert.Equal(t, "/usage", gotPath)
 
-		written, err := os.ReadFile(filepath.Join(state, "claude-statusline", "usage.json"))
+		written, err := os.ReadFile(cachePath(t))
 		require.NoError(t, err)
 		assert.JSONEq(t, sampleResponse, string(written))
 	})
@@ -289,7 +301,7 @@ func TestRefresh(t *testing.T) {
 
 		require.NoError(t, anthropic.Refresh())
 
-		info, err := os.Stat(filepath.Join(state, "claude-statusline", "usage.json"))
+		info, err := os.Stat(cachePath(t))
 		require.NoError(t, err)
 		assert.Equal(t, os.FileMode(0o600), info.Mode().Perm())
 	})
@@ -315,9 +327,11 @@ func TestRefresh(t *testing.T) {
 	})
 
 	t.Run("missing credentials are an error, not a panic", func(t *testing.T) {
+		anthropic.SuppressKeychain(t)
 		t.Setenv("XDG_STATE_HOME", t.TempDir())
 		t.Setenv("HOME", t.TempDir())
+		t.Setenv("CLAUDE_CONFIG_DIR", "")
 
-		require.ErrorContains(t, anthropic.Refresh(), "reading credentials")
+		require.ErrorContains(t, anthropic.Refresh(), "no usable credentials")
 	})
 }

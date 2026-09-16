@@ -7,6 +7,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/frank-bee/claude-statusline/internal/anthropic"
 	appcli "github.com/frank-bee/claude-statusline/internal/cli"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -15,11 +16,17 @@ import (
 // isolate points config and cache lookup at a throwaway HOME, so a developer's
 // own ~/.config/claude-statusline/config.toml and cached usage never decide
 // whether these assertions hold.
+//
+// CLAUDE_CONFIG_DIR is pinned empty rather than left alone: credential and
+// cache lookup follow it, and these tests are usually run from inside Claude
+// Code, which exports it. Left set, the suite reads the developer's real
+// credentials and caches under their real account key.
 func isolate(t *testing.T) {
 	t.Helper()
 
 	home := t.TempDir()
 	t.Setenv("HOME", home)
+	t.Setenv("CLAUDE_CONFIG_DIR", "")
 	t.Setenv("XDG_CONFIG_HOME", filepath.Join(home, ".config"))
 	t.Setenv("XDG_STATE_HOME", filepath.Join(home, ".local", "state"))
 }
@@ -149,10 +156,9 @@ func TestThemesCommand(t *testing.T) {
 func TestThemesLeavesTheRealCacheAlone(t *testing.T) {
 	isolate(t)
 
-	state := filepath.Join(os.Getenv("XDG_STATE_HOME"), "claude-statusline")
-	require.NoError(t, os.MkdirAll(state, 0o700))
+	cache, err := anthropic.CachePath()
+	require.NoError(t, err)
 
-	cache := filepath.Join(state, "usage.json")
 	original := `{"limits":[{"kind":"session","percent":7}],"spend":{"enabled":false}}`
 	require.NoError(t, os.WriteFile(cache, []byte(original), 0o600))
 

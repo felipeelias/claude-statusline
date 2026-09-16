@@ -59,6 +59,7 @@ lives in a throwaway directory; your own config and cached reading are untouched
 | `init` | Create default config at `~/.config/claude-statusline/config.toml` |
 | `test` | Render with your config and mock data (for config iteration) |
 | `themes` | Preview all built-in presets, then the modules that are off by default, with mock data |
+| `plan` | Which account this session is signed in as, its plan, and whether that plan meters windows or a money budget |
 
 Global flags: `--config / -c` to override config path, `--version`.
 
@@ -180,10 +181,27 @@ default, costs no request, reads no credentials, and cannot be rate-limited. For
 and weekly windows, this is all you need.
 
 `windows` and `credits` ask Anthropic's usage API directly, using the OAuth token Claude Code
-already holds in `~/.claude/.credentials.json`. The one thing they add is **`credits`**: the
-credit pool metered on usage-based seats, which the payload does not report at all. `windows`
-returns the same two windows `usage` already shows, so enable it only if you specifically want
-the account's own accounting.
+already holds. The one thing they add is **`credits`**: the credit pool metered on usage-based
+seats, which the payload does not report at all. `windows` returns the same two windows
+`usage` already shows, so enable it only if you specifically want the account's own accounting.
+
+**On an Enterprise usage-based seat, `usage` has nothing to show.** There are no rate-limit
+windows on such a seat: Claude Code sends no `rate_limits` in the payload, and every window in
+the API response comes back `null`. `credits` carries the reading instead — the money budget
+and how much of it is spent. On Pro the reverse holds: `spend.enabled` is `false` and
+`credits` is the silent one.
+
+Run `claude-statusline plan` to see which applies:
+
+```
+$ claude-statusline plan
+account       someone@example.com
+organization  example-org
+plan          enterprise
+seat          enterprise_usage_based
+meters        a money budget  ->  $credits
+budget        776.24 / 993.00 USD (78%)
+```
 
 | | `usage` | `windows` / `credits` |
 |---|---|---|
@@ -193,23 +211,52 @@ the account's own accounting.
 | HTTP request | none | one per 5 minutes, can be rate-limited |
 | Reads credentials | no | yes |
 
-```toml
-format = "$directory | $git_branch | $model | $context | $windows$credits"
+Each renders nothing when it does not apply, so `usage` and `credits` can both sit in one
+format string across plans — on any given account exactly one of them has data. That is the
+setup to reach for, and the one to keep if you switch between accounts, because switching then
+needs no config change:
 
-[windows]
-disabled = false
+```toml
+format = "$directory | $git_branch | $model | $context | $usage$credits"
 
 [credits]
 disabled = false
 ```
 
-Each renders nothing when it does not apply, so both can sit in a format string across plans:
-`credits` is empty on a plan without a credit pool, and `windows` is empty before the first
-reading arrives.
+`windows` is the same figures as `usage` from the API instead of the payload; enable it only
+if you want the account's own accounting:
+
+```toml
+[windows]
+disabled = false
+```
+
+### Which account it reads
+
+Claude Code isolates credentials per config directory, and keeps the live token in the macOS
+Keychain rather than on disk:
+
+| `CLAUDE_CONFIG_DIR` | Keychain service | File fallback |
+|---|---|---|
+| unset | `Claude Code-credentials` | `~/.claude/.credentials.json` |
+| set | `Claude Code-credentials-<sha256(dir)[:8]>` | `$CLAUDE_CONFIG_DIR/.credentials.json` |
+
+The Keychain is read first and the file second, and a candidate whose `expiresAt` has passed
+is skipped in favour of a live one. Claude Code writes refreshed tokens to the Keychain, so a
+`.credentials.json` can sit expired for days while the session it belongs to works fine —
+reading only the file is how a budget segment goes blank with no explanation.
+
+Because `CLAUDE_CONFIG_DIR` is exported into the status line process, this needs no knowledge
+of whatever manages those directories. Tools that switch between several Claude accounts work
+by pointing that variable at a profile, so following it follows the switch: an Enterprise
+session shows the Enterprise budget and a Pro session shows Pro's windows, at the same time,
+in two terminals, with one config file. Cached readings are kept per account for the same
+reason — one shared cache would let whichever session refreshed last overwrite the other.
 
 The HTTP request never happens while rendering. Both modules read a cached reading (5 minutes)
 and, when it is stale, spawn a detached background process that refreshes it and outlives the
-render. The cache is `~/.local/state/claude-statusline/usage.json`; `claude-statusline
+render. The cache is
+`~/.local/state/claude-statusline/accounts/<config-dir-hash>/usage.json`; `claude-statusline
 refresh-usage` forces a refresh in the foreground and prints why one failed, which is the way
 to tell an expired login from a rate-limited endpoint.
 

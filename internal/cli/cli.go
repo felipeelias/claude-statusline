@@ -40,6 +40,7 @@ func New(version string) *ucli.App {
 			initCommand(),
 			testCommand(),
 			themesCommand(),
+			planCommand(),
 			refreshUsageCommand(),
 		},
 	}
@@ -77,6 +78,55 @@ func promptAction(cmd *ucli.Context) error {
 	_, _ = fmt.Fprint(cmd.App.Writer, output)
 
 	return nil
+}
+
+// planCommand reports which account the current session is signed in as and
+// what that plan meters. It exists because the two usage segments are not
+// interchangeable - windows on Pro/Max/Team, a money budget on a usage-based
+// Enterprise seat - and an empty segment gives no clue which one applies.
+func planCommand() *ucli.Command {
+	return &ucli.Command{
+		Name:  "plan",
+		Usage: "Show the current account, its plan, and what that plan meters",
+		Action: func(cmd *ucli.Context) error {
+			profile, err := anthropic.LoadProfile()
+			if err != nil {
+				fmt.Fprintln(cmd.App.ErrWriter, "cannot read profile:", err)
+
+				return nil
+			}
+
+			plan := profile.Plan()
+
+			meters := "nothing this tool can read"
+
+			switch {
+			case plan.MetersBudget():
+				meters = "a money budget  ->  $credits"
+			case plan.MetersWindows():
+				meters = "rate-limit windows  ->  $usage"
+			}
+
+			fmt.Fprintf(cmd.App.Writer, "account       %s\n", profile.Account.Email)
+			fmt.Fprintf(cmd.App.Writer, "organization  %s\n", profile.Organization.Name)
+			fmt.Fprintf(cmd.App.Writer, "plan          %s\n", plan)
+
+			if profile.Organization.SeatTier != "" {
+				fmt.Fprintf(cmd.App.Writer, "seat          %s\n", profile.Organization.SeatTier)
+			}
+
+			fmt.Fprintf(cmd.App.Writer, "meters        %s\n", meters)
+
+			usage, err := anthropic.Load()
+			if err == nil && usage.Spend.Enabled && usage.Spend.Limit != nil {
+				fmt.Fprintf(cmd.App.Writer, "budget        %.2f / %.2f %s (%.0f%%)\n",
+					usage.Spend.Used.Major(), usage.Spend.Limit.Major(),
+					usage.Spend.Used.Currency, usage.Spend.Percent)
+			}
+
+			return nil
+		},
+	}
 }
 
 // refreshUsageCommand refreshes the cached Anthropic usage reading. The
@@ -272,21 +322,22 @@ func mockUsageCache() (func(), error) {
 		return nil, err
 	}
 
-	cache := filepath.Join(dir, "claude-statusline")
-
-	err = os.MkdirAll(cache, cacheDirPerms)
-	if err != nil {
-		return nil, err
-	}
-
-	err = os.WriteFile(filepath.Join(cache, "usage.json"), []byte(mockUsageJSON), cacheFilePerms)
-	if err != nil {
-		return nil, err
-	}
-
+	// The environment is redirected before the reading is written, because the
+	// cache layout is per-account: only the package can say where the file for
+	// the current account goes, and it answers relative to XDG_STATE_HOME.
 	previous, had := os.LookupEnv("XDG_STATE_HOME")
 
 	err = os.Setenv("XDG_STATE_HOME", dir)
+	if err != nil {
+		return nil, err
+	}
+
+	path, err := anthropic.CachePath()
+	if err != nil {
+		return nil, err
+	}
+
+	err = os.WriteFile(path, []byte(mockUsageJSON), cacheFilePerms)
 	if err != nil {
 		return nil, err
 	}

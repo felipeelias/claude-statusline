@@ -11,8 +11,9 @@ package anthropic
 
 import (
 	"context"
+	"crypto/sha256"
+	"encoding/hex"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -102,7 +103,7 @@ type Usage struct {
 // A missing or unreadable cache is not an error the status line should print:
 // the caller renders nothing and the next render picks up the refresh.
 func Load() (*Usage, error) {
-	path, err := cachePath()
+	path, err := CachePath()
 	if err != nil {
 		return nil, err
 	}
@@ -156,7 +157,7 @@ func Refresh() error {
 
 	clearBackoff()
 
-	path, err := cachePath()
+	path, err := CachePath()
 	if err != nil {
 		return err
 	}
@@ -212,39 +213,6 @@ func retryAfter(resp *http.Response) time.Duration {
 	return time.Duration(seconds) * time.Second
 }
 
-// accessToken reads the OAuth token Claude Code already holds. Nothing here
-// writes credentials, and the token never leaves this process.
-func accessToken() (string, error) {
-	home, err := os.UserHomeDir()
-	if err != nil {
-		return "", err
-	}
-
-	raw, err := os.ReadFile(filepath.Join(home, ".claude", ".credentials.json"))
-	if err != nil {
-		return "", fmt.Errorf("reading credentials: %w", err)
-	}
-
-	// The key names are Claude Code's, not ours: this file is read, never
-	// written, so camelCase here is the format talking.
-	var creds struct {
-		OAuth struct {
-			AccessToken string `json:"accessToken"` //nolint:tagliatelle // Claude Code's format
-		} `json:"claudeAiOauth"` //nolint:tagliatelle // Claude Code's format
-	}
-
-	err = json.Unmarshal(raw, &creds)
-	if err != nil {
-		return "", fmt.Errorf("parsing credentials: %w", err)
-	}
-
-	if creds.OAuth.AccessToken == "" {
-		return "", errors.New("no access token in credentials")
-	}
-
-	return creds.OAuth.AccessToken, nil
-}
-
 func stateDir() (string, error) {
 	dir := os.Getenv("XDG_STATE_HOME")
 	if dir == "" {
@@ -263,8 +231,41 @@ func stateDir() (string, error) {
 	return dir, os.MkdirAll(dir, dirPerms) //nolint:gosec // user-owned path
 }
 
-func cachePath() (string, error) {
-	dir, err := stateDir()
+// accountDir is the per-account corner of the state directory. Claude Code
+// separates credentials by config directory, so two sessions signed in as two
+// different accounts - an Enterprise seat and a Pro one, say - have different
+// config directories and therefore different readings to cache. Sharing one
+// usage.json between them means whichever refreshed last wins, and a Pro
+// session (no credit pool, spend.enabled false) silently blanks the Enterprise
+// session's budget.
+//
+// The key is the config directory rather than the account the credentials
+// resolve to, because this is on the render path: hashing an environment
+// variable is free, while identifying the account means reading the Keychain,
+// which is a process spawn on every render.
+func accountDir() (string, error) {
+	state, err := stateDir()
+	if err != nil {
+		return "", err
+	}
+
+	config, err := configDir()
+	if err != nil {
+		return "", err
+	}
+
+	sum := sha256.Sum256([]byte(config))
+	dir := filepath.Join(state, "accounts", hex.EncodeToString(sum[:])[:configDirHashLength])
+
+	// The path is under the caller's own state directory.
+	return dir, os.MkdirAll(dir, dirPerms)
+}
+
+// CachePath is where the usage reading for the current account is cached. It
+// is exported so a test can seed a reading without rebuilding the per-account
+// path by hand, and so the layout has one definition rather than four.
+func CachePath() (string, error) {
+	dir, err := accountDir()
 	if err != nil {
 		return "", err
 	}
@@ -277,7 +278,7 @@ func cachePath() (string, error) {
 // has expired - which is what provokes the rate limit in the first place, and
 // leaves the reading frozen for as long as the limit lasts.
 func backoffPath() (string, error) {
-	dir, err := stateDir()
+	dir, err := accountDir()
 	if err != nil {
 		return "", err
 	}
@@ -316,15 +317,6 @@ func setBackoff(wait time.Duration) {
 		wait = maxBackoff
 	}
 
-	dir, err := stateDir()
-	if err != nil {
-		return
-	}
-
-	if os.MkdirAll(dir, dirPerms) != nil {
-		return
-	}
-
 	path, err := backoffPath()
 	if err != nil {
 		return
@@ -346,7 +338,7 @@ func clearBackoff() {
 // takeLock stops a burst of renders from firing parallel refreshes. A lock left
 // behind by a killed process goes stale rather than wedging refreshes forever.
 func takeLock() (string, error) {
-	dir, err := stateDir()
+	dir, err := accountDir()
 	if err != nil {
 		return "", err
 	}

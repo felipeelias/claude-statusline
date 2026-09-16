@@ -2,10 +2,10 @@ package modules_test
 
 import (
 	"os"
-	"path/filepath"
 	"testing"
 	"time"
 
+	"github.com/frank-bee/claude-statusline/internal/anthropic"
 	"github.com/frank-bee/claude-statusline/internal/config"
 	"github.com/frank-bee/claude-statusline/internal/input"
 	"github.com/frank-bee/claude-statusline/internal/modules"
@@ -18,13 +18,12 @@ import (
 func seedUsage(t *testing.T, body string, age time.Duration) {
 	t.Helper()
 
-	state := t.TempDir()
-	t.Setenv("XDG_STATE_HOME", state)
+	t.Setenv("XDG_STATE_HOME", t.TempDir())
+	t.Setenv("CLAUDE_CONFIG_DIR", "")
 
-	dir := filepath.Join(state, "claude-statusline")
-	require.NoError(t, os.MkdirAll(dir, 0o700))
+	path, err := anthropic.CachePath()
+	require.NoError(t, err)
 
-	path := filepath.Join(dir, "usage.json")
 	require.NoError(t, os.WriteFile(path, []byte(body), 0o600))
 
 	modTime := time.Now().Add(-age)

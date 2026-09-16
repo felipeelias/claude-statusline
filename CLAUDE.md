@@ -20,6 +20,56 @@ covers something the payload lacks — the credit pool on usage-based seats, and
 without one (`spend.enabled: false`) renders nothing at all. Recommend `usage` by default and
 treat the API path as the credit-pool case.
 
+**The plan decides which one has data, and they are mutually exclusive.** On an Enterprise
+usage-based seat there are no rate-limit windows at all: Claude Code sends no `rate_limits`
+in the payload, and every window in `/api/oauth/usage` (`five_hour`, `seven_day` and the
+fifteen others) comes back `null`. `usage` therefore renders nothing there, which looks like
+a broken module rather than an empty one. On Pro the reverse holds — `spend.enabled` is
+`false` and `credits` renders nothing.
+
+So put **both** in the format string. Whichever plan the session is signed in as, one has
+data and the other is silent, and switching accounts needs no config change.
+`claude-statusline plan` prints which is live:
+
+```
+account       someone@example.com
+organization  example-org
+plan          enterprise
+seat          enterprise_usage_based
+meters        a money budget  ->  $credits
+budget        776.24 / 993.00 USD (78%)
+```
+
+## Credentials
+
+Claude Code isolates credentials **per config directory**, and the live token is in the
+Keychain, not the file:
+
+| `CLAUDE_CONFIG_DIR` | Keychain service | File |
+|---|---|---|
+| unset | `Claude Code-credentials` | `~/.claude/.credentials.json` |
+| set | `Claude Code-credentials-<sha256(dir)[:8]>` | `$CLAUDE_CONFIG_DIR/.credentials.json` |
+
+`internal/anthropic/credentials.go` resolves the Keychain item first and the file second,
+skipping any candidate whose `expiresAt` has passed. The ordering is not arbitrary: Claude
+Code writes refreshed access tokens to the Keychain, so a `.credentials.json` that is
+symlinked or copied by an account switcher can sit expired for days while the session it
+belongs to works fine. Reading `CLAUDE_CONFIG_DIR` from the environment — Claude Code exports
+it into the status line child — is what keeps this independent of whatever manages those
+directories: a switcher works by pointing that variable at a profile, so following it follows
+the switch with no knowledge of the switcher.
+
+The cache is keyed on the config directory for the same reason (`accounts/<hash>/` under the
+state directory). One shared `usage.json` lets a Pro session — no credit pool, `spend.enabled`
+false — silently blank the budget an Enterprise session is displaying. The key is the
+directory rather than the resolved account because `Load` is on the render path, where
+hashing an environment variable is free and reading the Keychain is a process spawn.
+
+**Never let the suite reach real credentials.** Tests pin `CLAUDE_CONFIG_DIR` to `""` and call
+`anthropic.SuppressKeychain(t)`. Without both, a test that sets `HOME` to a temporary
+directory still resolves the *default* Keychain item and the developer's own live token, and
+assertions pass or fail depending on whose machine they run on.
+
 ## Layout
 
 ```
@@ -29,8 +79,8 @@ internal/config/     TOML config, defaults, and the presets
 internal/render/     parses the format string, resolves $tokens
 internal/modules/    one file per module, the bulk of the code
 internal/style/      ANSI colours, hex parsing, named attributes
-internal/anthropic/  the usage API client and its file cache
-internal/cli/        commands: prompt, init, test, themes, refresh-usage
+internal/anthropic/  the usage API client, credential resolution, file cache
+internal/cli/        commands: prompt, init, test, themes, plan, refresh-usage
 ```
 
 A module implements `Name()` and `Render()`; register it in `internal/render` and give it a
@@ -41,10 +91,14 @@ config struct with defaults in `internal/config`. Every module has a `_test.go` 
 | | |
 |---|---|
 | Config | `~/.config/claude-statusline/config.toml` |
-| Cache | `~/.local/state/claude-statusline/usage.json` |
+| Cache | `~/.local/state/claude-statusline/accounts/<config-dir-hash>/usage.json` |
+| Profile cache | `~/.local/state/claude-statusline/accounts/<config-dir-hash>/profile.json` |
 
-Identical to upstream on purpose — this is a drop-in replacement, so a user swapping between
-the two keeps their config.
+The config path is identical to upstream on purpose — this is a drop-in replacement, so a user
+swapping between the two keeps their config. The cache is per-account rather than upstream's
+flat `usage.json`, because two Claude Code sessions signed in as two different accounts would
+otherwise overwrite each other's readings. Ask `anthropic.CachePath()` rather than rebuilding
+the path; four places used to construct it by hand.
 
 ## Working on it
 
@@ -53,6 +107,7 @@ go build ./... && go test ./... && golangci-lint run
 GOOS=windows go build ./...   # the detach path is per-platform; it breaks quietly here
 claude-statusline test        # render with mock data
 claude-statusline themes      # preview every preset, and the off-by-default modules
+claude-statusline plan        # which account is live, and what its plan meters
 ```
 
 **Check the linter actually ran.** A golangci-lint built against an older Go than the local
