@@ -40,6 +40,27 @@ func TestRenderDisabledModule(t *testing.T) {
 	assert.Contains(t, result, "$1.00")
 }
 
+func TestRenderEffortModule(t *testing.T) {
+	cfg := config.Default()
+	cfg.Format = "$effort"
+	cfg.Effort.Disabled = false
+	data := input.Data{Effort: input.Effort{Level: "max"}}
+
+	result, err := render.Render(cfg, data)
+	require.NoError(t, err)
+	assert.Contains(t, result, "max")
+}
+
+func TestRenderEffortModuleWithoutPayload(t *testing.T) {
+	cfg := config.Default()
+	cfg.Format = "$effort"
+	cfg.Effort.Disabled = false
+
+	result, err := render.Render(cfg, input.Data{})
+	require.NoError(t, err)
+	assert.Empty(t, result)
+}
+
 func TestRenderStyledText(t *testing.T) {
 	cfg := config.Default()
 	cfg.Format = "[hello](bold green)"

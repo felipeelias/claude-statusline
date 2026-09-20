@@ -17,6 +17,8 @@ func TestDefault(t *testing.T) {
 	assert.Equal(t, "cyan", cfg.Directory.Style)
 	assert.Equal(t, "bold", cfg.Model.Style)
 	assert.False(t, cfg.Model.Disabled)
+	assert.Equal(t, "{{.Level}}", cfg.Effort.Format)
+	assert.True(t, cfg.Effort.Disabled)
 	assert.True(t, cfg.SessionTimer.Disabled)
 	assert.True(t, cfg.LinesChanged.Disabled)
 }
@@ -34,6 +36,26 @@ style = "italic"
 	require.NoError(t, err)
 	assert.Equal(t, "$model | $cost", cfg.Format)
 	assert.Equal(t, "italic", cfg.Model.Style)
+}
+
+func TestLoadEffortModuleFromFile(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "config.toml")
+	require.NoError(t, os.WriteFile(path, []byte(`
+format = "$effort"
+
+[effort]
+format = "effort:{{.Level}}"
+style = "cyan"
+disabled = false
+`), 0o644))
+
+	cfg, err := config.Load(path)
+	require.NoError(t, err)
+	assert.Equal(t, "$effort", cfg.Format)
+	assert.Equal(t, "effort:{{.Level}}", cfg.Effort.Format)
+	assert.Equal(t, "cyan", cfg.Effort.Style)
+	assert.False(t, cfg.Effort.Disabled)
 }
 
 func TestLoadMissingFileReturnsDefaults(t *testing.T) {
@@ -94,6 +116,7 @@ func TestSampleConfig(t *testing.T) {
 	assert.Contains(t, sample, "gruvbox-rainbow")
 	assert.Contains(t, sample, "catppuccin")
 	assert.Contains(t, sample, "# [model]")
+	assert.Contains(t, sample, "# [effort]")
 	assert.Contains(t, sample, "# [cost]")
 	assert.Contains(t, sample, "# [context]")
 	assert.Contains(t, sample, "# [session_timer]")
