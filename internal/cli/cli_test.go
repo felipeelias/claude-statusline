@@ -8,11 +8,13 @@ import (
 	"testing"
 
 	appcli "github.com/felipeelias/claude-statusline/internal/cli"
+	"github.com/felipeelias/claude-statusline/internal/testutil"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
 func TestPromptCommand(t *testing.T) {
+	testutil.IsolateHome(t)
 	jsonInput := `{
 		"model": {"display_name": "Claude Opus 4"},
 		"cwd": "/tmp/test",
@@ -33,6 +35,8 @@ func TestPromptCommand(t *testing.T) {
 }
 
 func TestDefaultAction(t *testing.T) {
+	testutil.IsolateHome(t)
+
 	jsonInput := `{
 		"model": {"display_name": "Test Model"},
 		"cwd": "/tmp",
@@ -51,6 +55,8 @@ func TestDefaultAction(t *testing.T) {
 }
 
 func TestInitCommand(t *testing.T) {
+	testutil.IsolateHome(t)
+
 	dir := t.TempDir()
 	configPath := filepath.Join(dir, "claude-statusline", "config.toml")
 
@@ -70,6 +76,8 @@ func TestInitCommand(t *testing.T) {
 }
 
 func TestInitCommandAlreadyExists(t *testing.T) {
+	testutil.IsolateHome(t)
+
 	dir := t.TempDir()
 	configPath := filepath.Join(dir, "config.toml")
 	err := os.WriteFile(configPath, []byte("existing"), 0644)
@@ -81,6 +89,8 @@ func TestInitCommandAlreadyExists(t *testing.T) {
 }
 
 func TestTestCommand(t *testing.T) {
+	testutil.IsolateHome(t)
+
 	var stdout bytes.Buffer
 	app := appcli.New("test")
 	app.Writer = &stdout
@@ -95,6 +105,8 @@ func TestTestCommand(t *testing.T) {
 }
 
 func TestThemesCommand(t *testing.T) {
+	testutil.IsolateHome(t)
+
 	var stdout bytes.Buffer
 	app := appcli.New("test")
 	app.Writer = &stdout

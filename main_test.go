@@ -10,6 +10,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/felipeelias/claude-statusline/internal/testutil"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -44,8 +45,15 @@ func TestMain(m *testing.M) {
 	os.Exit(code)
 }
 
+func statusline(t *testing.T, args ...string) *exec.Cmd {
+	t.Helper()
+	testutil.IsolateHome(t)
+
+	return exec.CommandContext(context.Background(), testBinary, args...)
+}
+
 func TestEndToEnd(t *testing.T) {
-	cmd := exec.CommandContext(context.Background(), testBinary)
+	cmd := statusline(t)
 	cmd.Stdin = strings.NewReader(mockJSON)
 	out, err := cmd.Output()
 	require.NoError(t, err)
@@ -58,7 +66,7 @@ func TestEndToEnd(t *testing.T) {
 }
 
 func TestEndToEndPromptSubcommand(t *testing.T) {
-	cmd := exec.CommandContext(context.Background(), testBinary, "prompt")
+	cmd := statusline(t, "prompt")
 	cmd.Stdin = strings.NewReader(mockJSON)
 	out, err := cmd.Output()
 	require.NoError(t, err)
@@ -69,7 +77,7 @@ func TestEndToEndPromptSubcommand(t *testing.T) {
 }
 
 func TestEndToEndEmptyJSON(t *testing.T) {
-	cmd := exec.CommandContext(context.Background(), testBinary)
+	cmd := statusline(t)
 	cmd.Stdin = strings.NewReader("{}")
 	out, err := cmd.Output()
 	require.NoError(t, err)
@@ -79,7 +87,7 @@ func TestEndToEndEmptyJSON(t *testing.T) {
 func TestEndToEndInitCommand(t *testing.T) {
 	configPath := filepath.Join(t.TempDir(), "claude-statusline", "config.toml")
 
-	cmd := exec.CommandContext(context.Background(), testBinary, "--config", configPath, "init")
+	cmd := statusline(t, "--config", configPath, "init")
 	var stdout bytes.Buffer
 	cmd.Stdout = &stdout
 	err := cmd.Run()
@@ -94,7 +102,7 @@ func TestEndToEndInitCommand(t *testing.T) {
 }
 
 func TestEndToEndTestCommand(t *testing.T) {
-	cmd := exec.CommandContext(context.Background(), testBinary, "test")
+	cmd := statusline(t, "test")
 	out, err := cmd.Output()
 	require.NoError(t, err)
 
@@ -105,7 +113,7 @@ func TestEndToEndTestCommand(t *testing.T) {
 }
 
 func TestEndToEndThemesCommand(t *testing.T) {
-	cmd := exec.CommandContext(context.Background(), testBinary, "themes")
+	cmd := statusline(t, "themes")
 	out, err := cmd.Output()
 	require.NoError(t, err)
 
@@ -127,7 +135,7 @@ preset = "catppuccin"
 `), 0o644)
 	require.NoError(t, err)
 
-	cmd := exec.CommandContext(context.Background(), testBinary, "--config", configPath)
+	cmd := statusline(t, "--config", configPath)
 	cmd.Stdin = strings.NewReader(mockJSON)
 	out, err := cmd.Output()
 	require.NoError(t, err)
@@ -138,7 +146,7 @@ preset = "catppuccin"
 }
 
 func TestEndToEndVersion(t *testing.T) {
-	cmd := exec.CommandContext(context.Background(), testBinary, "--version")
+	cmd := statusline(t, "--version")
 	out, err := cmd.Output()
 	require.NoError(t, err)
 	assert.Contains(t, string(out), "dev")
