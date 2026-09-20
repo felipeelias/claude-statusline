@@ -30,6 +30,11 @@ func (ContextModule) Render(data input.Data, cfg config.Config) (string, error) 
 	}
 
 	winningStyle := resolveThresholdStyle(pct, cfg.Context.Thresholds, cfg.Context.Style)
+	styled := wrapStyle(result, winningStyle)
 
-	return wrapStyle(result, winningStyle), nil
+	if marker, ok := resolveBarMarker(pct, cfg.Context.BarMarkers); ok {
+		styled = marker + styled + marker
+	}
+
+	return styled, nil
 }
