@@ -8,24 +8,13 @@ import (
 	"testing"
 
 	appcli "github.com/felipeelias/claude-statusline/internal/cli"
+	"github.com/felipeelias/claude-statusline/internal/testutil"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
-// isolate points config and cache lookup at a throwaway HOME, so a developer's
-// own ~/.config/claude-statusline/config.toml and cached usage never decide
-// whether these assertions hold.
-func isolate(t *testing.T) {
-	t.Helper()
-
-	home := t.TempDir()
-	t.Setenv("HOME", home)
-	t.Setenv("XDG_CONFIG_HOME", filepath.Join(home, ".config"))
-	t.Setenv("XDG_STATE_HOME", filepath.Join(home, ".local", "state"))
-}
-
 func TestPromptCommand(t *testing.T) {
-	isolate(t)
+	testutil.IsolateHome(t)
 	jsonInput := `{
 		"model": {"display_name": "Claude Opus 4"},
 		"cwd": "/tmp/test",
@@ -46,7 +35,7 @@ func TestPromptCommand(t *testing.T) {
 }
 
 func TestDefaultAction(t *testing.T) {
-	isolate(t)
+	testutil.IsolateHome(t)
 
 	jsonInput := `{
 		"model": {"display_name": "Test Model"},
@@ -66,7 +55,7 @@ func TestDefaultAction(t *testing.T) {
 }
 
 func TestInitCommand(t *testing.T) {
-	isolate(t)
+	testutil.IsolateHome(t)
 
 	dir := t.TempDir()
 	configPath := filepath.Join(dir, "claude-statusline", "config.toml")
@@ -87,7 +76,7 @@ func TestInitCommand(t *testing.T) {
 }
 
 func TestInitCommandAlreadyExists(t *testing.T) {
-	isolate(t)
+	testutil.IsolateHome(t)
 
 	dir := t.TempDir()
 	configPath := filepath.Join(dir, "config.toml")
@@ -100,7 +89,7 @@ func TestInitCommandAlreadyExists(t *testing.T) {
 }
 
 func TestTestCommand(t *testing.T) {
-	isolate(t)
+	testutil.IsolateHome(t)
 
 	var stdout bytes.Buffer
 	app := appcli.New("test")
@@ -116,7 +105,7 @@ func TestTestCommand(t *testing.T) {
 }
 
 func TestThemesCommand(t *testing.T) {
-	isolate(t)
+	testutil.IsolateHome(t)
 
 	var stdout bytes.Buffer
 	app := appcli.New("test")

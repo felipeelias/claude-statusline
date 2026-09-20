@@ -10,6 +10,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/felipeelias/claude-statusline/internal/testutil"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -44,23 +45,11 @@ func TestMain(m *testing.M) {
 	os.Exit(code)
 }
 
-// statusline runs the built binary in a throwaway HOME, so a developer's own
-// ~/.config/claude-statusline/config.toml and cached usage never decide whether
-// these assertions hold. Without it the suite passes on CI and fails on any
-// machine that actually uses the tool.
 func statusline(t *testing.T, args ...string) *exec.Cmd {
 	t.Helper()
+	testutil.IsolateHome(t)
 
-	home := t.TempDir()
-
-	cmd := exec.CommandContext(context.Background(), testBinary, args...)
-	cmd.Env = append(os.Environ(),
-		"HOME="+home,
-		"XDG_CONFIG_HOME="+filepath.Join(home, ".config"),
-		"XDG_STATE_HOME="+filepath.Join(home, ".local", "state"),
-	)
-
-	return cmd
+	return exec.CommandContext(context.Background(), testBinary, args...)
 }
 
 func TestEndToEnd(t *testing.T) {
