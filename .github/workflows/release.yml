@@ -41,10 +41,26 @@ jobs:
       }}
     runs-on: ubuntu-latest
     steps:
+      - name: Validate release tag
+        id: release-tag
+        if: ${{ github.event_name == 'workflow_dispatch' }}
+        env:
+          TAG: ${{ inputs.tag }}
+        run: |
+          tag_ref="refs/tags/$TAG"
+          if ! git check-ref-format "$tag_ref" > /dev/null; then
+            echo "::error::Tag must be a valid Git tag name"
+            exit 1
+          fi
+          if ! git ls-remote --exit-code --refs "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY.git" "$tag_ref" > /dev/null; then
+            echo "::error::Tag does not exist in the repository"
+            exit 1
+          fi
+          echo "ref=$tag_ref" >> "$GITHUB_OUTPUT"
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
-          ref: ${{ github.event_name == 'workflow_dispatch' && format('refs/tags/{0}', inputs.tag) || github.sha }}
+          ref: ${{ github.event_name == 'workflow_dispatch' && steps.release-tag.outputs.ref || github.sha }}
       - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
         with:
           go-version-file: go.mod
