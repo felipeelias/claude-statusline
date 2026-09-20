@@ -19,6 +19,9 @@ type moduleEntry struct {
 // tokenPattern matches module references ($word) and styled text ([text](style)).
 // The order matters: styled text is matched first to avoid $-matching inside it.
 var tokenPattern = regexp.MustCompile(`\[([^\]]*)\]\(([^)]*)\)|\$([a-z_]+)`)
+var ansiEscapePattern = regexp.MustCompile(`\x1b\[[0-?]*[ -/]*[@-~]`)
+
+const pipeSeparator = " | "
 
 // Render parses the format string from cfg, evaluates module references and
 // styled text tokens, and returns the concatenated result.
@@ -29,7 +32,31 @@ func Render(cfg config.Config, data input.Data) (string, error) {
 	}
 
 	registry := buildRegistry(cfg)
+	sections := splitPipeSections(format)
+	if len(sections) == 1 {
+		return renderSection(format, registry, cfg, data)
+	}
 
+	var renderedSections []string
+
+	for _, section := range sections {
+		rendered, err := renderSection(section, registry, cfg, data)
+		if err != nil {
+			return "", err
+		}
+
+		visibleText := ansiEscapePattern.ReplaceAllString(rendered, "")
+		if strings.TrimSpace(visibleText) != "" {
+			renderedSections = append(renderedSections, rendered)
+		}
+	}
+
+	return strings.Join(renderedSections, pipeSeparator), nil
+}
+
+func renderSection(
+	format string, registry map[string]moduleEntry, cfg config.Config, data input.Data,
+) (string, error) {
 	var result strings.Builder
 
 	lastIndex := 0
@@ -54,6 +81,43 @@ func Render(cfg config.Config, data input.Data) (string, error) {
 	}
 
 	return result.String(), nil
+}
+func splitPipeSections(format string) []string {
+	tokenLocations := tokenPattern.FindAllStringIndex(format, -1)
+	sections := make([]string, 0, strings.Count(format, pipeSeparator)+1)
+	sectionStart := 0
+	searchStart := 0
+
+	for searchStart < len(format) {
+		separatorOffset := strings.Index(format[searchStart:], pipeSeparator)
+		if separatorOffset == -1 {
+			break
+		}
+
+		separatorStart := searchStart + separatorOffset
+		separatorEnd := separatorStart + len(pipeSeparator)
+		if withinToken(separatorStart, separatorEnd, tokenLocations) {
+			searchStart = separatorEnd
+
+			continue
+		}
+
+		sections = append(sections, format[sectionStart:max(sectionStart, separatorStart)])
+		sectionStart = separatorEnd
+		searchStart = separatorEnd - 1
+	}
+
+	return append(sections, format[sectionStart:])
+}
+
+func withinToken(start, end int, tokenLocations [][]int) bool {
+	for _, location := range tokenLocations {
+		if start >= location[0] && end <= location[1] {
+			return true
+		}
+	}
+
+	return false
 }
 
 func renderMatch(

@@ -51,6 +51,87 @@ func TestRenderEffortModule(t *testing.T) {
 	assert.Contains(t, result, "max")
 }
 
+func TestRenderOmitsEmptyPipeDelimitedSections(t *testing.T) {
+	tests := []struct {
+		name   string
+		format string
+		want   string
+	}{
+		{
+			name:   "leading",
+			format: "$effort | $model",
+			want:   "Opus",
+		},
+		{
+			name:   "middle",
+			format: "$model | $effort | $cost",
+			want:   "Opus | $1.00",
+		},
+		{
+			name:   "trailing",
+			format: "$model | $effort",
+			want:   "Opus",
+		},
+		{
+			name:   "adjacent",
+			format: "$model | $effort | $usage | $cost",
+			want:   "Opus | $1.00",
+		},
+		{
+			name:   "repeated separator",
+			format: "$model | | $cost",
+			want:   "Opus | $1.00",
+		},
+		{
+			name:   "styled whitespace",
+			format: "$model | [ ](bold) | $cost",
+			want:   "Opus | $1.00",
+		},
+	}
+
+	for _, testCase := range tests {
+		t.Run(testCase.name, func(t *testing.T) {
+			cfg := config.Default()
+			cfg.Format = testCase.format
+			cfg.Model.Style = ""
+			cfg.Effort.Disabled = false
+			cfg.Cost.Style = ""
+
+			data := input.Data{
+				Model: input.Model{DisplayName: "Opus"},
+				Cost:  input.Cost{TotalCostUSD: 1},
+			}
+
+			result, err := render.Render(cfg, data)
+			require.NoError(t, err)
+			assert.Equal(t, testCase.want, result)
+		})
+	}
+}
+
+func TestRenderPreservesPipeDelimitedContent(t *testing.T) {
+	cfg := config.Default()
+	cfg.Format = "$model | [left | right](bold) | literal | $cost"
+	cfg.Model.Style = ""
+	cfg.Cost.Style = ""
+	data := input.Data{
+		Model: input.Model{DisplayName: "Opus"},
+		Cost:  input.Cost{TotalCostUSD: 1},
+	}
+
+	result, err := render.Render(cfg, data)
+	require.NoError(t, err)
+	assert.Equal(t, "Opus | \033[1mleft | right\033[0m | literal | $1.00", result)
+}
+func TestRenderPreservesWhitespaceWithoutPipeSeparators(t *testing.T) {
+	cfg := config.Default()
+	cfg.Format = " "
+
+	result, err := render.Render(cfg, input.Data{})
+	require.NoError(t, err)
+	assert.Equal(t, " ", result)
+}
+
 func TestRenderEffortModuleWithoutPayload(t *testing.T) {
 	cfg := config.Default()
 	cfg.Format = "$effort"
