@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.10.1](https://github.com/felipeelias/claude-statusline/compare/v0.10.0...v0.10.1) (2026-09-20)
+
+
+### Bug Fixes
+
+* remove separators around empty sections ([#70](https://github.com/felipeelias/claude-statusline/issues/70)) ([3c8c68b](https://github.com/felipeelias/claude-statusline/commit/3c8c68b694d775ce9b4019568a1f71f5adf428d0))
+
 ## [0.10.0](https://github.com/felipeelias/claude-statusline/compare/v0.9.0...v0.10.0) (2026-09-20)
 
 
