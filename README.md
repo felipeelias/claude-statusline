@@ -296,6 +296,8 @@ Other statusline tools from the [awesome-claude-code](https://github.com/hesreal
 
 ## Contributors
 
+- [@frank-bee](https://github.com/frank-bee)
+- [@ftreede](https://github.com/ftreede)
 - [@sammcj](https://github.com/sammcj)
 
 ## License
