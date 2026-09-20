@@ -19,6 +19,7 @@ type moduleEntry struct {
 // tokenPattern matches module references ($word) and styled text ([text](style)).
 // The order matters: styled text is matched first to avoid $-matching inside it.
 var tokenPattern = regexp.MustCompile(`\[([^\]]*)\]\(([^)]*)\)|\$([a-z_]+)`)
+var ansiEscapePattern = regexp.MustCompile(`\x1b\[[0-?]*[ -/]*[@-~]`)
 
 const pipeSeparator = " | "
 
@@ -44,7 +45,8 @@ func Render(cfg config.Config, data input.Data) (string, error) {
 			return "", err
 		}
 
-		if strings.TrimSpace(rendered) != "" {
+		visibleText := ansiEscapePattern.ReplaceAllString(rendered, "")
+		if strings.TrimSpace(visibleText) != "" {
 			renderedSections = append(renderedSections, rendered)
 		}
 	}
@@ -100,9 +102,9 @@ func splitPipeSections(format string) []string {
 			continue
 		}
 
-		sections = append(sections, format[sectionStart:separatorStart])
+		sections = append(sections, format[sectionStart:max(sectionStart, separatorStart)])
 		sectionStart = separatorEnd
-		searchStart = separatorEnd
+		searchStart = separatorEnd - 1
 	}
 
 	return append(sections, format[sectionStart:])

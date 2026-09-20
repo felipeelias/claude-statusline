@@ -77,6 +77,16 @@ func TestRenderOmitsEmptyPipeDelimitedSections(t *testing.T) {
 			format: "$model | $effort | $usage | $cost",
 			want:   "Opus | $1.00",
 		},
+		{
+			name:   "repeated separator",
+			format: "$model | | $cost",
+			want:   "Opus | $1.00",
+		},
+		{
+			name:   "styled whitespace",
+			format: "$model | [ ](bold) | $cost",
+			want:   "Opus | $1.00",
+		},
 	}
 
 	for _, testCase := range tests {
