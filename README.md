@@ -190,7 +190,7 @@ Set `bar_markers = []` to disable them. Powerline presets inherit markers tinted
 
 ### Usage module
 
-The `usage` module shows your Claude plan usage limits (5-hour rolling window and 7-day). Requires Claude Code 2.1.80+ which provides `rate_limits` in the status line payload.
+The `usage` module shows your Claude plan usage limits (5-hour rolling window and 7-day). Requires Claude Code 2.1.80+ which provides `rate_limits` in the status line payload, and a plan that is metered by rate-limit windows.
 
 ```toml
 format = "$directory | $git_branch | $model | $cost | $context | $usage"
@@ -218,7 +218,7 @@ disabled = false
 format = '{{if ge .BlockPct 70.0}}{{.BlockBar}} {{printf "%.0f" .BlockPct}}%{{end}}{{if ge .WeeklyPct 80.0}} W:{{printf "%.0f" .WeeklyPct}}%{{end}}'
 ```
 
-The module renders empty if `rate_limits` is not present in the Claude Code payload (older versions).
+The module renders empty if `rate_limits` is not present in the Claude Code payload. That happens on Claude Code older than 2.1.80, and also on plans that have no rate-limit windows to report: a usage-based Enterprise seat is metered against a money budget instead, and Claude Code sends no `rate_limits` at all for it (checked on 2.1.278).
 
 ### Vim mode module
 
