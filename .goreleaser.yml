@@ -16,6 +16,22 @@ builds:
       - amd64
       - arm64
 
+homebrew_casks:
+  - name: claude-statusline
+    repository:
+      owner: felipeelias
+      name: homebrew-tap
+      token: "{{ .Env.TAP_GITHUB_TOKEN }}"
+    homepage: https://github.com/felipeelias/claude-statusline
+    description: Configurable status line for Claude Code
+    license: MIT
+    hooks:
+      post:
+        install: |
+          if OS.mac?
+            system_command "/usr/bin/xattr", args: ["-dr", "com.apple.quarantine", "#{staged_path}/claude-statusline"]
+          end
+
 checksum:
   name_template: checksums.txt
 
