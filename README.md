@@ -106,6 +106,7 @@ style = "fg:#11111b bg:#cba6f7 bold"
 | `directory` | on | Current directory (tilde-collapsed, truncated) |
 | `git_branch` | on | Git branch with status indicators (dirty, ahead/behind, worktree) |
 | `model` | on | Model name, context window and reasoning effort |
+| `effort` | off | Effective reasoning effort level |
 | `cost` | on | Session cost in USD |
 | `context` | on | Context window usage with progress bar |
 | `session_timer` | off | Session elapsed time |
@@ -146,6 +147,30 @@ Template fields:
 format = "{{.Short}}"
 style = "bold"
 ```
+
+### Effort module
+
+The `effort` module shows the effective reasoning effort from Claude Code. It reflects in-session `/effort` changes and model-specific fallback behavior. The default model format already includes effort in `{{.Details}}`; use this module when effort needs a separate position or style.
+
+```toml
+format = "$directory | $git_branch | $model | $effort | $context"
+
+[model]
+format = "{{.Name}}{{with .Context}} ({{.}}){{end}}"
+
+[effort]
+disabled = false
+format = "{{.Level}}"
+style = "bold yellow"
+```
+
+Template fields:
+
+| Field | Description | Example |
+|-------|-------------|---------|
+| `{{.Level}}` | Effective effort level reported by Claude Code | `xhigh` |
+
+The module renders empty when Claude Code omits effort for a model that does not support it.
 
 ### Context module
 
@@ -271,6 +296,8 @@ Other statusline tools from the [awesome-claude-code](https://github.com/hesreal
 
 ## Contributors
 
+- [@frank-bee](https://github.com/frank-bee)
+- [@ftreede](https://github.com/ftreede)
 - [@sammcj](https://github.com/sammcj)
 
 ## License

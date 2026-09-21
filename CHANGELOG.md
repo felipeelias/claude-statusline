@@ -1,5 +1,26 @@
 # Changelog
 
+## [0.10.1](https://github.com/felipeelias/claude-statusline/compare/v0.10.0...v0.10.1) (2026-09-20)
+
+
+### Bug Fixes
+
+* remove separators around empty sections ([#70](https://github.com/felipeelias/claude-statusline/issues/70)) ([3c8c68b](https://github.com/felipeelias/claude-statusline/commit/3c8c68b694d775ce9b4019568a1f71f5adf428d0))
+
+## [0.10.0](https://github.com/felipeelias/claude-statusline/compare/v0.9.0...v0.10.0) (2026-09-20)
+
+
+### Features
+
+* add effort statusline module ([#64](https://github.com/felipeelias/claude-statusline/issues/64)) ([968da28](https://github.com/felipeelias/claude-statusline/commit/968da28ce46d9a63c55e4c9b4dcf74f264cededd))
+* make model details and context pressure visible ([#51](https://github.com/felipeelias/claude-statusline/issues/51)) ([a4d74ac](https://github.com/felipeelias/claude-statusline/commit/a4d74ac1c564ea0520616b9ac6de2db8dde9db19))
+
+
+### Bug Fixes
+
+* **bar:** show small non-zero progress ([#60](https://github.com/felipeelias/claude-statusline/issues/60)) ([50e0d0b](https://github.com/felipeelias/claude-statusline/commit/50e0d0bfb70e968f0f3e3a2c358bea40ff7f1943))
+* support Windows-style backslash paths in directory truncation ([#48](https://github.com/felipeelias/claude-statusline/issues/48)) ([83a75fe](https://github.com/felipeelias/claude-statusline/commit/83a75fedacc5db7c23e9e425b34b6a49c7fe156b))
+
 ## [0.9.0](https://github.com/felipeelias/claude-statusline/compare/v0.8.0...v0.9.0) (2026-03-31)
 
 

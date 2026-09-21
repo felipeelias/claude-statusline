@@ -140,3 +140,21 @@ func TestResolveBarChars_ViaUsageModule(t *testing.T) {
 		assert.Contains(t, result, "###\u28c0\u28c0")
 	})
 }
+
+func TestBarSubCellPercentageFillsOneCell(t *testing.T) {
+	cfg := config.Default()
+	cfg.Context.Format = "{{.Bar}}"
+	cfg.Context.BarWidth = 8
+
+	// 10% of 8 cells is 0.8, which used to truncate to an entirely empty bar.
+	result, err := modules.ContextModule{}.Render(
+		input.Data{ContextWindow: input.ContextWindow{UsedPercentage: 10.0}}, cfg)
+	require.NoError(t, err)
+	assert.Contains(t, result, "\u2588\u2591\u2591\u2591\u2591\u2591\u2591\u2591")
+
+	// Zero still renders an empty bar.
+	result, err = modules.ContextModule{}.Render(
+		input.Data{ContextWindow: input.ContextWindow{UsedPercentage: 0}}, cfg)
+	require.NoError(t, err)
+	assert.Contains(t, result, "\u2591\u2591\u2591\u2591\u2591\u2591\u2591\u2591")
+}

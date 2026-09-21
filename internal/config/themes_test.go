@@ -31,6 +31,18 @@ func TestApplyPresetMinimal(t *testing.T) {
 	assert.NotContains(t, cfg.Format, "|")
 }
 
+func TestBuiltInPresetsConfigureEffortModule(t *testing.T) {
+	for _, name := range config.PresetNames() {
+		t.Run(name, func(t *testing.T) {
+			cfg, ok := config.ApplyPreset(name)
+			assert.True(t, ok)
+			assert.Equal(t, "{{.Level}}", cfg.Effort.Format)
+			assert.NotEmpty(t, cfg.Effort.Style)
+			assert.True(t, cfg.Effort.Disabled)
+		})
+	}
+}
+
 func TestApplyPresetCapsulePowerline(t *testing.T) {
 	for _, name := range []string{"pastel-powerline", "gruvbox-rainbow", "catppuccin"} {
 		t.Run(name, func(t *testing.T) {

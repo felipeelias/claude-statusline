@@ -1,11 +1,9 @@
 package modules
 
 import (
-	"bytes"
 	"net/url"
 	"os"
 	"strings"
-	"text/template"
 
 	"github.com/felipeelias/claude-statusline/internal/config"
 	"github.com/felipeelias/claude-statusline/internal/input"
@@ -177,11 +175,6 @@ func resolveDirectoryHyperlink(urlTemplate, absPath string) string {
 		return ""
 	}
 
-	tmpl, err := template.New("hyperlink_url").Parse(urlTemplate)
-	if err != nil {
-		return ""
-	}
-
 	data := struct {
 		AbsPath        string
 		AbsPathEncoded string
@@ -190,11 +183,10 @@ func resolveDirectoryHyperlink(urlTemplate, absPath string) string {
 		AbsPathEncoded: (&url.URL{Path: absPath}).EscapedPath(),
 	}
 
-	var buf bytes.Buffer
-	err = tmpl.Execute(&buf, data)
+	result, err := renderTemplate("hyperlink_url", urlTemplate, data)
 	if err != nil {
 		return ""
 	}
 
-	return buf.String()
+	return result
 }

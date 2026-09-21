@@ -2,12 +2,27 @@ package modules
 
 import (
 	"bytes"
+	"os/exec"
 	"strings"
 	"text/template"
 
 	"github.com/felipeelias/claude-statusline/internal/config"
 	"github.com/felipeelias/claude-statusline/internal/style"
 )
+
+// runGit runs a git command in the given directory and returns trimmed stdout.
+// Returns empty string if the command fails or git is not available.
+//
+//nolint:noctx // no context available in module interface
+func runGit(cwd string, args ...string) string {
+	cmd := exec.Command("git", append([]string{"-C", cwd}, args...)...)
+	out, err := cmd.Output()
+	if err != nil {
+		return ""
+	}
+
+	return strings.TrimSpace(string(out))
+}
 
 // renderTemplate executes a Go text/template with the given data and returns the result.
 func renderTemplate(name, format string, data any) (string, error) {
@@ -72,8 +87,14 @@ func resolveBarChars(barStyle, barFill, barEmpty string) (string, string) {
 }
 
 // buildBar creates a progress bar string from a percentage value.
+// Any percentage above zero fills at least one cell, so a small but non-zero
+// reading never renders as an entirely empty bar.
 func buildBar(pct float64, width int, fill, empty string) string {
 	filled := min(max(int(pct/pctMax*float64(width)), 0), width)
+	if filled == 0 && pct > 0 && width > 0 {
+		filled = 1
+	}
+
 	emptyCount := width - filled
 
 	return strings.Repeat(fill, filled) + strings.Repeat(empty, emptyCount)
