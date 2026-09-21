@@ -124,6 +124,7 @@ style = "fg:#11111b bg:#cba6f7 bold"
 | `directory` | on | Current directory (tilde-collapsed, truncated) |
 | `git_branch` | on | Git branch with status indicators (dirty, ahead/behind, worktree) |
 | `model` | on | Model name, context window and reasoning effort |
+| `output_style` | off | Claude Code's current output style |
 | `effort` | off | Effective reasoning effort level |
 | `cost` | on | Session cost in USD |
 | `context` | on | Context window usage with progress bar |
@@ -189,6 +190,32 @@ Template fields:
 | `{{.Level}}` | Effective effort level reported by Claude Code | `xhigh` |
 
 The module renders empty when Claude Code omits effort for a model that does not support it.
+
+### Output style module
+
+The `output_style` module shows the output style Claude Code is running with, so
+a session in a non-default style says so instead of looking like any other. It is
+off by default.
+
+```toml
+format = "$directory | $git_branch | $model | $output_style | $context"
+
+[output_style]
+disabled = false
+format = "{{.Name}}"
+style = "dim"
+hide_default = true
+```
+
+Template fields:
+
+| Field | Description | Example |
+|-------|-------------|---------|
+| `{{.Name}}` | Output style reported by Claude Code | `Concise` |
+
+`hide_default` (on by default) keeps the module quiet while Claude Code reports
+the built-in `default` style, so the bar only gains a segment once the style is
+actually worth knowing about. Set it to `false` to show the style at all times.
 
 ### Context module
 

@@ -278,3 +278,24 @@ func TestRenderEmptySeparatorFallsBackToDefault(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, "Opus | $1.00", visibleText(result))
 }
+
+func TestRenderOutputStyleModule(t *testing.T) {
+	cfg := config.Default()
+	cfg.Format = "$output_style"
+	cfg.OutputStyle.Disabled = false
+	data := input.Data{OutputStyle: input.OutputStyle{Name: "Concise"}}
+
+	result, err := render.Render(cfg, data)
+	require.NoError(t, err)
+	assert.Contains(t, result, "Concise")
+}
+
+func TestRenderOutputStyleDisabledByDefault(t *testing.T) {
+	cfg := config.Default()
+	cfg.Format = "$output_style"
+	data := input.Data{OutputStyle: input.OutputStyle{Name: "Concise"}}
+
+	result, err := render.Render(cfg, data)
+	require.NoError(t, err)
+	assert.Empty(t, result)
+}
