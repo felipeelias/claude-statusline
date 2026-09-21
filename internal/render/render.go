@@ -21,8 +21,6 @@ type moduleEntry struct {
 var tokenPattern = regexp.MustCompile(`\[([^\]]*)\]\(([^)]*)\)|\$([a-z_]+)`)
 var ansiEscapePattern = regexp.MustCompile(`\x1b\[[0-?]*[ -/]*[@-~]`)
 
-const pipeSeparator = " | "
-
 // Render parses the format string from cfg, evaluates module references and
 // styled text tokens, and returns the concatenated result.
 func Render(cfg config.Config, data input.Data) (string, error) {
@@ -31,8 +29,13 @@ func Render(cfg config.Config, data input.Data) (string, error) {
 		return "", nil
 	}
 
+	separator := cfg.Separator
+	if separator == "" {
+		separator = config.DefaultSeparator
+	}
+
 	registry := buildRegistry(cfg)
-	sections := splitPipeSections(format)
+	sections := splitSections(format, separator)
 	if len(sections) == 1 {
 		return renderSection(format, registry, cfg, data)
 	}
@@ -51,7 +54,7 @@ func Render(cfg config.Config, data input.Data) (string, error) {
 		}
 	}
 
-	return strings.Join(renderedSections, pipeSeparator), nil
+	return strings.Join(renderedSections, separator), nil
 }
 
 func renderSection(
@@ -82,20 +85,20 @@ func renderSection(
 
 	return result.String(), nil
 }
-func splitPipeSections(format string) []string {
+func splitSections(format, separator string) []string {
 	tokenLocations := tokenPattern.FindAllStringIndex(format, -1)
-	sections := make([]string, 0, strings.Count(format, pipeSeparator)+1)
+	sections := make([]string, 0, strings.Count(format, separator)+1)
 	sectionStart := 0
 	searchStart := 0
 
 	for searchStart < len(format) {
-		separatorOffset := strings.Index(format[searchStart:], pipeSeparator)
+		separatorOffset := strings.Index(format[searchStart:], separator)
 		if separatorOffset == -1 {
 			break
 		}
 
 		separatorStart := searchStart + separatorOffset
-		separatorEnd := separatorStart + len(pipeSeparator)
+		separatorEnd := separatorStart + len(separator)
 		if withinToken(separatorStart, separatorEnd, tokenLocations) {
 			searchStart = separatorEnd
 

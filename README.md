@@ -65,6 +65,24 @@ Works with zero config. The default format is:
 format = "$directory | $git_branch | $model | $cost | $context"
 ```
 
+### Separators and empty modules
+
+`separator` is the string that splits the format into sections. When every module
+in a section renders empty -- no git repository, a plan that reports no usage, a
+model with no effort setting -- that section is dropped together with one
+separator, so the bar never shows `a |  | b`.
+
+It defaults to `" | "`, which is what the default format uses. A format that
+joins modules with blanks instead of glyphs needs to say so, or the gap between
+the surviving modules doubles when a module falls away:
+
+```toml
+separator = "  "
+format = "$directory  $git_branch  $model  $context"
+```
+
+The built-in presets set this for you; `minimal` uses `"  "`.
+
 ## Presets
 
 Presets are inspired by [Starship presets](https://starship.rs/presets/). Each preset defines the layout, separators, colors, and module configuration.
