@@ -16,16 +16,6 @@ builds:
       - amd64
       - arm64
 
-brews:
-  - name: claude-statusline
-    repository:
-      owner: felipeelias
-      name: homebrew-tap
-      token: "{{ .Env.TAP_GITHUB_TOKEN }}"
-    homepage: https://github.com/felipeelias/claude-statusline
-    description: Configurable status line for Claude Code
-    license: MIT
-
 checksum:
   name_template: checksums.txt
 
