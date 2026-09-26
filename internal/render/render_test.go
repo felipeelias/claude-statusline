@@ -1,6 +1,7 @@
 package render_test
 
 import (
+	"regexp"
 	"testing"
 
 	"github.com/felipeelias/claude-statusline/internal/config"
@@ -201,4 +202,79 @@ func TestRenderInlineStyle(t *testing.T) {
 	require.NoError(t, err)
 	assert.Contains(t, result, "\033[36m")
 	assert.Contains(t, result, "text")
+}
+
+// visibleTextPattern strips ANSI styling so a test can assert on the exact
+// spacing between sections.
+var visibleTextPattern = regexp.MustCompile(`\x1b\[[0-?]*[ -/]*[@-~]`)
+
+func visibleText(s string) string { return visibleTextPattern.ReplaceAllString(s, "") }
+
+func TestRenderOmitsEmptySectionsWithCustomSeparator(t *testing.T) {
+	cfg := config.Default()
+	cfg.Separator = "  "
+	cfg.Format = "$model  $session_timer  $cost"
+	data := input.Data{
+		Model: input.Model{DisplayName: "Opus"},
+		Cost:  input.Cost{TotalCostUSD: 1.0},
+	}
+
+	result, err := render.Render(cfg, data)
+	require.NoError(t, err)
+	assert.Equal(t, "Opus  $1.00", visibleText(result))
+}
+
+func TestRenderSingleByteSeparators(t *testing.T) {
+	for _, separator := range []string{"|", " "} {
+		t.Run(separator, func(t *testing.T) {
+			cfg := config.Default()
+			cfg.Separator = separator
+			cfg.Model.Style = ""
+			cfg.Cost.Style = ""
+			data := input.Data{
+				Model: input.Model{DisplayName: "Opus"},
+				Cost:  input.Cost{TotalCostUSD: 1},
+			}
+
+			for _, format := range []string{
+				"$model" + separator + "$cost",
+				"$model" + separator + "$session_timer" + separator + "$cost",
+				separator + "$model" + separator + separator + "$cost" + separator,
+			} {
+				cfg.Format = format
+				result, err := render.Render(cfg, data)
+				require.NoError(t, err)
+				assert.Equal(t, "Opus"+separator+"$1.00", result, "format: %q", format)
+			}
+		})
+	}
+}
+
+func TestRenderMinimalPresetCollapsesEmptySections(t *testing.T) {
+	cfg, ok := config.ApplyPreset("minimal")
+	require.True(t, ok)
+
+	cfg.Format = "$model  $session_timer  $cost"
+	data := input.Data{
+		Model: input.Model{DisplayName: "Opus"},
+		Cost:  input.Cost{TotalCostUSD: 1.0},
+	}
+
+	result, err := render.Render(cfg, data)
+	require.NoError(t, err)
+	assert.NotContains(t, visibleText(result), "   ")
+}
+
+func TestRenderEmptySeparatorFallsBackToDefault(t *testing.T) {
+	cfg := config.Default()
+	cfg.Separator = ""
+	cfg.Format = "$model | $session_timer | $cost"
+	data := input.Data{
+		Model: input.Model{DisplayName: "Opus"},
+		Cost:  input.Cost{TotalCostUSD: 1.0},
+	}
+
+	result, err := render.Render(cfg, data)
+	require.NoError(t, err)
+	assert.Equal(t, "Opus | $1.00", visibleText(result))
 }

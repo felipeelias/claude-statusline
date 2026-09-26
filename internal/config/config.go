@@ -8,10 +8,15 @@ import (
 	"github.com/BurntSushi/toml"
 )
 
+// DefaultSeparator joins format sections when a config declares no separator of
+// its own, so that a Config built without one keeps the historical behaviour.
+const DefaultSeparator = " | "
+
 // Config holds the full statusline configuration.
 type Config struct {
 	Preset       string             `toml:"preset"`
 	Format       string             `toml:"format"`
+	Separator    string             `toml:"separator"`
 	Model        ModelConfig        `toml:"model"`
 	Effort       EffortConfig       `toml:"effort"`
 	Directory    DirectoryConfig    `toml:"directory"`
@@ -186,8 +191,9 @@ func defaultContextConfig() ContextConfig {
 //nolint:funlen // single-struct initializer reads best as one block
 func Default() Config {
 	return Config{
-		Preset: "default",
-		Format: "$directory | $git_branch | $model | $cost | $context",
+		Preset:    "default",
+		Format:    "$directory | $git_branch | $model | $cost | $context",
+		Separator: DefaultSeparator,
 		Model: ModelConfig{
 			Format: "{{.Name}}{{with .Details}} ({{.}}){{end}}",
 			Style:  "bold",
@@ -331,6 +337,12 @@ preset = "default"
 # Styled text groups use [text](style) syntax.
 # When using a preset, you typically don't need to change the format.
 format = "$directory | $git_branch | $model | $cost | $context"
+
+# Separator splits the format into sections. A section whose modules all render
+# empty is dropped along with one separator, so nothing is left dangling. Set it
+# to whatever the format actually uses to join modules - "  " for a layout
+# spaced with blanks rather than glyphs.
+# separator = " | "
 
 # Module configuration. Each module supports format, style, and disabled.
 # Styles: "bold", "dim", "italic", "fg:#hex", "bg:#hex", "208"

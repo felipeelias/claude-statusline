@@ -51,6 +51,7 @@ func presetMinimal() Config {
 	cfg := Default()
 	cfg.Preset = "minimal"
 	cfg.Format = "$directory  $git_branch  $model  $cost  $context"
+	cfg.Separator = "  "
 	cfg.Directory.Style = "blue"
 	cfg.GitBranch.Format = "{{.Branch}}"
 	cfg.GitBranch.Style = "cyan"
@@ -252,7 +253,7 @@ func presetCatppuccin() Config {
 	usageBg := "#cba6f7" // catppuccin mauve
 	cfg.Usage.Style = segStyle("#11111b", usageBg)
 	cfg.Usage.Thresholds = []Threshold{
-		{Above: usageWarnThreshold, Style: segStyle("#df8e1d", usageBg)},        // darkened yellow for contrast on mauve
+		{Above: usageWarnThreshold, Style: segStyle("#df8e1d", usageBg)},           // darkened yellow for contrast on mauve
 		{Above: usageHighThreshold, Style: segStyle("#d20f39", usageBg) + " bold"}, // catppuccin latte red, bold for emphasis
 	}
 
