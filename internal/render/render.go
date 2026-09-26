@@ -154,6 +154,7 @@ func buildRegistry(cfg config.Config) map[string]moduleEntry {
 	return map[string]moduleEntry{
 		"model":         {module: modules.ModelModule{}, disabled: cfg.Model.Disabled},
 		"effort":        {module: modules.EffortModule{}, disabled: cfg.Effort.Disabled},
+		"output_style":  {module: modules.OutputStyleModule{}, disabled: cfg.OutputStyle.Disabled},
 		"directory":     {module: modules.NewDirectoryModule(), disabled: cfg.Directory.Disabled},
 		"cost":          {module: modules.CostModule{}, disabled: cfg.Cost.Disabled},
 		"context":       {module: modules.ContextModule{}, disabled: cfg.Context.Disabled},

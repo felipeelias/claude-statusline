@@ -19,6 +19,7 @@ type Config struct {
 	Separator    string             `toml:"separator"`
 	Model        ModelConfig        `toml:"model"`
 	Effort       EffortConfig       `toml:"effort"`
+	OutputStyle  OutputStyleConfig  `toml:"output_style"`
 	Directory    DirectoryConfig    `toml:"directory"`
 	Cost         CostConfig         `toml:"cost"`
 	Context      ContextConfig      `toml:"context"`
@@ -58,6 +59,17 @@ type EffortConfig struct {
 	Format   string `toml:"format"`
 	Style    string `toml:"style"`
 	Disabled bool   `toml:"disabled"`
+}
+
+// OutputStyleConfig holds output_style module settings.
+type OutputStyleConfig struct {
+	Format string `toml:"format"`
+	Style  string `toml:"style"`
+	// HideDefault suppresses the module while Claude Code reports the built-in
+	// "default" output style, so the bar only speaks up once the style is
+	// something worth knowing about.
+	HideDefault bool `toml:"hide_default"`
+	Disabled    bool `toml:"disabled"`
 }
 
 // DirectoryConfig holds directory module settings.
@@ -202,6 +214,12 @@ func Default() Config {
 			Format:   "{{.Level}}",
 			Style:    "bold yellow",
 			Disabled: true,
+		},
+		OutputStyle: OutputStyleConfig{
+			Format:      "{{.Name}}",
+			Style:       "dim",
+			HideDefault: true,
+			Disabled:    true,
 		},
 		Directory: DirectoryConfig{
 			Format:               "{{.Dir}}",
@@ -360,6 +378,13 @@ format = "$directory | $git_branch | $model | $cost | $context"
 # format = "{{.Level}}"
 # style = "bold yellow"
 # Template fields: Level (e.g. "low", "medium", "high", "xhigh", "max")
+
+# [output_style]
+# disabled = false
+# format = "{{.Name}}"
+# style = "dim"
+# hide_default = true   # stay quiet while the style is Claude Code's "default"
+# Template fields: Name (e.g. "Concise", "Explanatory")
 
 # [directory]
 # format = "{{.Dir}}"
