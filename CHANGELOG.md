@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.11.0](https://github.com/felipeelias/claude-statusline/compare/v0.10.1...v0.11.0) (2026-09-26)
+
+
+### Features
+
+* **output_style:** add a module for Claude Code's output style ([#76](https://github.com/felipeelias/claude-statusline/issues/76)) ([d69d16d](https://github.com/felipeelias/claude-statusline/commit/d69d16dd5e599cb0935538f49dd009b48eec85f7))
+
+
+### Bug Fixes
+
+* **render:** make the section separator configurable ([#75](https://github.com/felipeelias/claude-statusline/issues/75)) ([99e0ec8](https://github.com/felipeelias/claude-statusline/commit/99e0ec803da3c572a4dc3957c4c0bd6de6dcbac6))
+
 ## [0.10.1](https://github.com/felipeelias/claude-statusline/compare/v0.10.0...v0.10.1) (2026-09-20)
 
 
