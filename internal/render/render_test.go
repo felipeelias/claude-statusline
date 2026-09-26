@@ -224,6 +224,32 @@ func TestRenderOmitsEmptySectionsWithCustomSeparator(t *testing.T) {
 	assert.Equal(t, "Opus  $1.00", visibleText(result))
 }
 
+func TestRenderSingleByteSeparators(t *testing.T) {
+	for _, separator := range []string{"|", " "} {
+		t.Run(separator, func(t *testing.T) {
+			cfg := config.Default()
+			cfg.Separator = separator
+			cfg.Model.Style = ""
+			cfg.Cost.Style = ""
+			data := input.Data{
+				Model: input.Model{DisplayName: "Opus"},
+				Cost:  input.Cost{TotalCostUSD: 1},
+			}
+
+			for _, format := range []string{
+				"$model" + separator + "$cost",
+				"$model" + separator + "$session_timer" + separator + "$cost",
+				separator + "$model" + separator + separator + "$cost" + separator,
+			} {
+				cfg.Format = format
+				result, err := render.Render(cfg, data)
+				require.NoError(t, err)
+				assert.Equal(t, "Opus"+separator+"$1.00", result, "format: %q", format)
+			}
+		})
+	}
+}
+
 func TestRenderMinimalPresetCollapsesEmptySections(t *testing.T) {
 	cfg, ok := config.ApplyPreset("minimal")
 	require.True(t, ok)

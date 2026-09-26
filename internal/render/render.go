@@ -107,7 +107,11 @@ func splitSections(format, separator string) []string {
 
 		sections = append(sections, format[sectionStart:max(sectionStart, separatorStart)])
 		sectionStart = separatorEnd
-		searchStart = separatorEnd - 1
+		searchStart = separatorEnd
+		if len(separator) > 1 {
+			// Preserve overlapping separators without revisiting a single-byte separator.
+			searchStart--
+		}
 	}
 
 	return append(sections, format[sectionStart:])
