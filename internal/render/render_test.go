@@ -299,3 +299,45 @@ func TestRenderOutputStyleDisabledByDefault(t *testing.T) {
 	require.NoError(t, err)
 	assert.Empty(t, result)
 }
+
+func TestRenderOutputStyleSections(t *testing.T) {
+	for _, preset := range []string{"default", "minimal"} {
+		t.Run(preset, func(t *testing.T) {
+			for _, testCase := range []struct {
+				name        string
+				styleName   string
+				hideDefault bool
+				wantStyle   string
+			}{
+				{name: "missing", hideDefault: true},
+				{name: "default", styleName: "default", hideDefault: true},
+				{name: "mixed case default", styleName: "Default", hideDefault: true},
+				{name: "show default", styleName: "default", wantStyle: "default"},
+				{name: "custom", styleName: "Concise", hideDefault: true, wantStyle: "Concise"},
+			} {
+				t.Run(testCase.name, func(t *testing.T) {
+					cfg, ok := config.ApplyPreset(preset)
+					require.True(t, ok)
+					cfg.Format = "$model" + cfg.Separator + "$output_style" + cfg.Separator + "$cost"
+					cfg.OutputStyle.Disabled = false
+					cfg.OutputStyle.HideDefault = testCase.hideDefault
+					data := input.Data{
+						Model:       input.Model{DisplayName: "Opus"},
+						OutputStyle: input.OutputStyle{Name: testCase.styleName},
+						Cost:        input.Cost{TotalCostUSD: 1},
+					}
+
+					want := "Opus" + cfg.Separator
+					if testCase.wantStyle != "" {
+						want += testCase.wantStyle + cfg.Separator
+					}
+					want += "$1.00"
+
+					result, err := render.Render(cfg, data)
+					require.NoError(t, err)
+					assert.Equal(t, want, visibleText(result))
+				})
+			}
+		})
+	}
+}
