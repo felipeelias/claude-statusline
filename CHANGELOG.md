@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.11.1](https://github.com/felipeelias/claude-statusline/compare/v0.11.0...v0.11.1) (2026-11-05)
+
+
+### Miscellaneous Chores
+
+* release 0.11.1 ([122df53](https://github.com/felipeelias/claude-statusline/commit/122df53428877e074e9db44b717532288f729757))
+
 ## [0.11.0](https://github.com/felipeelias/claude-statusline/compare/v0.10.1...v0.11.0) (2026-09-26)
 
 
