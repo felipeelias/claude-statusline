@@ -122,6 +122,58 @@ func TestSampleConfig(t *testing.T) {
 	assert.Contains(t, sample, "# [session_timer]")
 }
 
+func TestLoadEnvVarInstancesInDefinitionOrder(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "config.toml")
+	require.NoError(t, os.WriteFile(path, []byte(`
+format = "$env_var"
+
+[env_var.ZETA]
+format = "z"
+
+[env_var.alpha]
+variable = "ALPHA_VAR"
+default = ""
+style = "dim"
+
+[env_var.MIDDLE]
+disabled = true
+`), 0o644))
+
+	cfg, err := config.Load(path)
+	require.NoError(t, err)
+	assert.Equal(t, []string{"ZETA", "alpha", "MIDDLE"}, cfg.EnvVarNames())
+	assert.Equal(t, "z", cfg.EnvVar["ZETA"].Format)
+	assert.Nil(t, cfg.EnvVar["ZETA"].Default)
+	assert.Equal(t, "ALPHA_VAR", cfg.EnvVar["alpha"].Variable)
+	require.NotNil(t, cfg.EnvVar["alpha"].Default)
+	assert.Empty(t, *cfg.EnvVar["alpha"].Default)
+	assert.True(t, cfg.EnvVar["MIDDLE"].Disabled)
+}
+
+func TestLoadEnvVarDottedKeysInDefinitionOrder(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "config.toml")
+	require.NoError(t, os.WriteFile(path, []byte(`
+env_var.Z.format = "z"
+env_var.A.format = "a"
+
+[env_var.M]
+format = "m"
+`), 0o644))
+
+	cfg, err := config.Load(path)
+	require.NoError(t, err)
+	assert.Equal(t, []string{"Z", "A", "M"}, cfg.EnvVarNames())
+}
+
+func TestEnvVarNamesWithoutRecordedOrderAreSorted(t *testing.T) {
+	cfg := config.Default()
+	cfg.EnvVar = map[string]config.EnvVarConfig{"b": {}, "a": {}, "c": {}}
+
+	assert.Equal(t, []string{"a", "b", "c"}, cfg.EnvVarNames())
+}
+
 func TestDefaultPath(t *testing.T) {
 	path := config.DefaultPath()
 	assert.Contains(t, path, "claude-statusline")

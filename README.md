@@ -133,6 +133,7 @@ style = "fg:#11111b bg:#cba6f7 bold"
 | `usage` | off | Plan usage limits (5-hour block and weekly) |
 | `vim_mode` | off | Vim mode indicator (NORMAL, INSERT, etc.) |
 | `agent_name` | off | Agent name when running with `--agent` |
+| `env_var` | per instance | Environment variables, one `[env_var.<NAME>]` table each |
 
 ### Enabling modules
 
@@ -283,6 +284,27 @@ Template fields:
 | `{{.Mode}}` | Current vim mode (e.g. `NORMAL`, `INSERT`) |
 
 The module renders empty if vim mode is not enabled or the mode string is empty.
+
+### Environment variable module
+
+The `env_var` module renders environment variables. Each `[env_var.<NAME>]` table defines one instance; reference it as `${env_var.NAME}`, or use `$env_var` to render every instance in definition order, separated by spaces.
+
+```toml
+format = "${env_var.APP_SANDBOX_CONTAINER_ID} $directory | $git_branch | $model"
+
+[env_var.APP_SANDBOX_CONTAINER_ID]
+format = '{{if eq .Value "agent-safehouse"}}📦{{end}}'
+```
+
+| Option | Default | Description |
+|--------|---------|-------------|
+| `variable` | instance name | Environment variable to read |
+| `default` | | Value used when the variable is unset |
+| `format` | `{{.Value}}` | Template with `{{.Name}}` (variable name) and `{{.Value}}` |
+| `style` | | Style applied to the output |
+| `disabled` | `false` | Disables the instance |
+
+An instance renders empty when its variable is unset and no `default` is set.
 
 ## Clickable hyperlinks (OSC 8)
 
