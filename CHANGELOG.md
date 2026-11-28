@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.12.0](https://github.com/felipeelias/claude-statusline/compare/v0.11.1...v0.12.0) (2026-11-28)
+
+
+### Features
+
+* add env_var module ([#86](https://github.com/felipeelias/claude-statusline/issues/86)) ([ab351a2](https://github.com/felipeelias/claude-statusline/commit/ab351a2f8726c70c2a8047ce9f516b711e657c47))
+
 ## [0.11.1](https://github.com/felipeelias/claude-statusline/compare/v0.11.0...v0.11.1) (2026-11-05)
 
 
