@@ -4,6 +4,7 @@ import (
 	"errors"
 	"os"
 	"path/filepath"
+	"slices"
 
 	"github.com/BurntSushi/toml"
 )
@@ -14,22 +15,25 @@ const DefaultSeparator = " | "
 
 // Config holds the full statusline configuration.
 type Config struct {
-	Preset       string             `toml:"preset"`
-	Format       string             `toml:"format"`
-	Separator    string             `toml:"separator"`
-	Model        ModelConfig        `toml:"model"`
-	Effort       EffortConfig       `toml:"effort"`
-	OutputStyle  OutputStyleConfig  `toml:"output_style"`
-	Directory    DirectoryConfig    `toml:"directory"`
-	Cost         CostConfig         `toml:"cost"`
-	Context      ContextConfig      `toml:"context"`
-	GitBranch    GitBranchConfig    `toml:"git_branch"`
-	SessionTimer SessionTimerConfig `toml:"session_timer"`
-	LinesChanged LinesChangedConfig `toml:"lines_changed"`
-	Usage        UsageConfig        `toml:"usage"`
-	Version      VersionConfig      `toml:"version"`
-	VimMode      VimModeConfig      `toml:"vim_mode"`
-	AgentName    AgentNameConfig    `toml:"agent_name"`
+	Preset       string                  `toml:"preset"`
+	Format       string                  `toml:"format"`
+	Separator    string                  `toml:"separator"`
+	Model        ModelConfig             `toml:"model"`
+	Effort       EffortConfig            `toml:"effort"`
+	OutputStyle  OutputStyleConfig       `toml:"output_style"`
+	Directory    DirectoryConfig         `toml:"directory"`
+	Cost         CostConfig              `toml:"cost"`
+	Context      ContextConfig           `toml:"context"`
+	GitBranch    GitBranchConfig         `toml:"git_branch"`
+	SessionTimer SessionTimerConfig      `toml:"session_timer"`
+	LinesChanged LinesChangedConfig      `toml:"lines_changed"`
+	Usage        UsageConfig             `toml:"usage"`
+	Version      VersionConfig           `toml:"version"`
+	VimMode      VimModeConfig           `toml:"vim_mode"`
+	AgentName    AgentNameConfig         `toml:"agent_name"`
+	EnvVar       map[string]EnvVarConfig `toml:"env_var"`
+
+	envVarOrder []string
 }
 
 // Threshold defines a conditional style based on a numeric value.
@@ -140,6 +144,38 @@ type AgentNameConfig struct {
 	Format   string `toml:"format"`
 	Style    string `toml:"style"`
 	Disabled bool   `toml:"disabled"`
+}
+
+// EnvVarConfig holds settings for one named env_var module instance.
+type EnvVarConfig struct {
+	Variable string  `toml:"variable"`
+	Default  *string `toml:"default"`
+	Format   string  `toml:"format"`
+	Style    string  `toml:"style"`
+	Disabled bool    `toml:"disabled"`
+}
+
+// EnvVarNames returns the env_var instance names in definition order. Instances
+// without a recorded position, such as those set programmatically, follow in
+// sorted order.
+func (c Config) EnvVarNames() []string {
+	names := make([]string, 0, len(c.EnvVar))
+	for _, name := range c.envVarOrder {
+		if _, ok := c.EnvVar[name]; ok && !slices.Contains(names, name) {
+			names = append(names, name)
+		}
+	}
+
+	var rest []string
+	for name := range c.EnvVar {
+		if !slices.Contains(names, name) {
+			rest = append(rest, name)
+		}
+	}
+
+	slices.Sort(rest)
+
+	return append(names, rest...)
 }
 
 // UsageConfig holds usage module settings.
@@ -318,9 +354,15 @@ func Load(path string) (Config, error) {
 	// Pass 2: start from preset base, decode user overrides on top.
 	cfg, _ := ApplyPreset(header.Preset)
 
-	_, err = toml.Decode(raw, &cfg)
+	meta, err := toml.Decode(raw, &cfg)
 	if err != nil {
 		return Config{}, err
+	}
+
+	for _, key := range meta.Keys() {
+		if len(key) == 2 && key[0] == "env_var" {
+			cfg.envVarOrder = append(cfg.envVarOrder, key[1])
+		}
 	}
 
 	return cfg, nil
@@ -474,6 +516,14 @@ format = "$directory | $git_branch | $model | $cost | $context"
 # format = "{{.Mode}}"
 # style = "bold yellow"
 # Template fields: Mode (e.g. "NORMAL", "INSERT")
+
+# Reference with ${env_var.NAME}, or $env_var for every instance in order.
+# [env_var.USER]
+# variable = "USER"  # defaults to the name after the dot
+# default = "unknown"  # used when the variable is unset; otherwise renders empty
+# format = "{{.Value}}"
+# style = ""
+# Template fields: Name, Value
 `
 
 // SampleConfig returns a commented TOML config template for the init command.

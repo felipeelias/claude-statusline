@@ -1,6 +1,8 @@
 package render_test
 
 import (
+	"os"
+	"path/filepath"
 	"regexp"
 	"testing"
 
@@ -340,4 +342,114 @@ func TestRenderOutputStyleSections(t *testing.T) {
 			}
 		})
 	}
+}
+
+func loadConfig(t *testing.T, content string) config.Config {
+	t.Helper()
+
+	path := filepath.Join(t.TempDir(), "config.toml")
+	require.NoError(t, os.WriteFile(path, []byte(content), 0o644))
+
+	cfg, err := config.Load(path)
+	require.NoError(t, err)
+
+	return cfg
+}
+
+func unsetTestEnv(t *testing.T) {
+	t.Helper()
+	t.Setenv("CSL_TEST_UNSET", "")
+	require.NoError(t, os.Unsetenv("CSL_TEST_UNSET"))
+}
+
+func TestRenderEnvVarInstance(t *testing.T) {
+	cfg := loadConfig(t, `
+format = "${env_var.CSL_TEST_SANDBOX} $model | $cost"
+
+[model]
+style = ""
+
+[cost]
+style = ""
+
+[env_var.CSL_TEST_SANDBOX]
+disabled = false
+format = '{{if eq .Value "agent-safehouse"}}📦{{end}}'
+`)
+	data := input.Data{
+		Model: input.Model{DisplayName: "Opus"},
+		Cost:  input.Cost{TotalCostUSD: 1},
+	}
+
+	t.Setenv("CSL_TEST_SANDBOX", "agent-safehouse")
+	result, err := render.Render(cfg, data)
+	require.NoError(t, err)
+	assert.Equal(t, "📦 Opus | $1.00", result)
+
+	t.Setenv("CSL_TEST_SANDBOX", "other")
+	result, err = render.Render(cfg, data)
+	require.NoError(t, err)
+	assert.Equal(t, " Opus | $1.00", result)
+}
+
+func TestRenderEnvVarDropsEmptySection(t *testing.T) {
+	cfg := loadConfig(t, `
+format = "$model | ${env_var.CSL_TEST_UNSET} | $cost"
+
+[model]
+style = ""
+
+[cost]
+style = ""
+
+[env_var.CSL_TEST_UNSET]
+style = "bold"
+`)
+	unsetTestEnv(t)
+
+	result, err := render.Render(cfg, input.Data{
+		Model: input.Model{DisplayName: "Opus"},
+		Cost:  input.Cost{TotalCostUSD: 1},
+	})
+	require.NoError(t, err)
+	assert.Equal(t, "Opus | $1.00", result)
+}
+
+func TestRenderAllEnvVarsInDefinitionOrder(t *testing.T) {
+	cfg := loadConfig(t, `
+format = "<$env_var>"
+
+[env_var.zeta]
+variable = "CSL_TEST_Z"
+format = "[{{.Value}}]"
+
+[env_var.alpha]
+variable = "CSL_TEST_A"
+format = "[{{.Value}}]"
+
+[env_var.off]
+variable = "CSL_TEST_A"
+disabled = true
+
+[env_var.fallback]
+variable = "CSL_TEST_UNSET"
+default = "none"
+format = "[{{.Name}}:{{.Value}}]"
+`)
+	t.Setenv("CSL_TEST_Z", "z")
+	t.Setenv("CSL_TEST_A", "a")
+	unsetTestEnv(t)
+
+	result, err := render.Render(cfg, input.Data{})
+	require.NoError(t, err)
+	assert.Equal(t, "<[z][a][CSL_TEST_UNSET:none]>", result)
+}
+
+func TestRenderUnknownBracedModule(t *testing.T) {
+	cfg := config.Default()
+	cfg.Format = "a${custom.foo}b"
+
+	result, err := render.Render(cfg, input.Data{})
+	require.NoError(t, err)
+	assert.Equal(t, "ab", result)
 }

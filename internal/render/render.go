@@ -16,9 +16,10 @@ type moduleEntry struct {
 	disabled bool
 }
 
-// tokenPattern matches module references ($word) and styled text ([text](style)).
+// tokenPattern matches module references ($word), named module instances
+// (${word.name}) and styled text ([text](style)).
 // The order matters: styled text is matched first to avoid $-matching inside it.
-var tokenPattern = regexp.MustCompile(`\[([^\]]*)\]\(([^)]*)\)|\$([a-z_]+)`)
+var tokenPattern = regexp.MustCompile(`\[([^\]]*)\]\(([^)]*)\)|\$\{([a-z_]+)\.([^}]+)\}|\$([a-z_]+)`)
 var ansiEscapePattern = regexp.MustCompile(`\x1b\[[0-?]*[ -/]*[@-~]`)
 
 // Render parses the format string from cfg, evaluates module references and
@@ -137,8 +138,18 @@ func renderMatch(
 		return style.Parse(styleStr).Wrap(text), nil
 	}
 
-	if loc[6] != -1 {
+	if loc[6] != -1 && loc[8] != -1 {
 		name := format[loc[6]:loc[7]]
+		instance := format[loc[8]:loc[9]]
+		if name == "env_var" {
+			return modules.EnvVarModule{Instance: instance}.Render(data, cfg)
+		}
+
+		return "", nil
+	}
+
+	if loc[10] != -1 {
+		name := format[loc[10]:loc[11]]
 		entry, ok := registry[name]
 		if ok && !entry.disabled {
 			return entry.module.Render(data, cfg)
@@ -165,5 +176,6 @@ func buildRegistry(cfg config.Config) map[string]moduleEntry {
 		"version":       {module: modules.VersionModule{}, disabled: cfg.Version.Disabled},
 		"vim_mode":      {module: modules.VimModeModule{}, disabled: cfg.VimMode.Disabled},
 		"agent_name":    {module: modules.AgentNameModule{}, disabled: cfg.AgentName.Disabled},
+		"env_var":       {module: modules.EnvVarModule{}},
 	}
 }
