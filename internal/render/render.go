@@ -16,10 +16,10 @@ type moduleEntry struct {
 	disabled bool
 }
 
-// tokenPattern matches module references ($word), named module instances
-// (${word.name}) and styled text ([text](style)).
+// tokenPattern matches module references ($word or ${word}), named module
+// instances (${word.name}) and styled text ([text](style)).
 // The order matters: styled text is matched first to avoid $-matching inside it.
-var tokenPattern = regexp.MustCompile(`\[([^\]]*)\]\(([^)]*)\)|\$\{([a-z_]+)\.([^}]+)\}|\$([a-z_]+)`)
+var tokenPattern = regexp.MustCompile(`\[([^\]]*)\]\(([^)]*)\)|\$\{([a-z_]+(?:\.[^}]+)?)\}|\$([a-z_]+)`)
 var ansiEscapePattern = regexp.MustCompile(`\x1b\[[0-?]*[ -/]*[@-~]`)
 
 // Render parses the format string from cfg, evaluates module references and
@@ -138,31 +138,31 @@ func renderMatch(
 		return style.Parse(styleStr).Wrap(text), nil
 	}
 
-	if loc[6] != -1 && loc[8] != -1 {
-		name := format[loc[6]:loc[7]]
-		instance := format[loc[8]:loc[9]]
-		if name == "env_var" {
-			return modules.EnvVarModule{Instance: instance}.Render(data, cfg)
-		}
+	braced := loc[6] != -1
+	nameLoc := loc[8:10]
+	if braced {
+		nameLoc = loc[6:8]
+	}
 
+	name := format[nameLoc[0]:nameLoc[1]]
+
+	entry, ok := registry[name]
+	if !ok && braced {
 		return format[loc[0]:loc[1]], nil
 	}
 
-	if loc[10] != -1 {
-		name := format[loc[10]:loc[11]]
-		entry, ok := registry[name]
-		if ok && !entry.disabled {
-			return entry.module.Render(data, cfg)
-		}
+	if ok && !entry.disabled {
+		return entry.module.Render(data, cfg)
 	}
 
 	return "", nil
 }
 
 // buildRegistry creates a map from module name to moduleEntry, pairing each
-// module with its disabled flag from config.
+// module with its disabled flag from config. Named instances are keyed
+// "module.name".
 func buildRegistry(cfg config.Config) map[string]moduleEntry {
-	return map[string]moduleEntry{
+	registry := map[string]moduleEntry{
 		"model":         {module: modules.ModelModule{}, disabled: cfg.Model.Disabled},
 		"effort":        {module: modules.EffortModule{}, disabled: cfg.Effort.Disabled},
 		"output_style":  {module: modules.OutputStyleModule{}, disabled: cfg.OutputStyle.Disabled},
@@ -178,4 +178,13 @@ func buildRegistry(cfg config.Config) map[string]moduleEntry {
 		"agent_name":    {module: modules.AgentNameModule{}, disabled: cfg.AgentName.Disabled},
 		"env_var":       {module: modules.EnvVarModule{}},
 	}
+
+	for name, envVar := range cfg.EnvVar {
+		registry["env_var."+name] = moduleEntry{
+			module:   modules.EnvVarModule{Instance: name},
+			disabled: envVar.Disabled,
+		}
+	}
+
+	return registry
 }

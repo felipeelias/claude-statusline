@@ -1,21 +1,15 @@
 package modules_test
 
 import (
-	"os"
 	"testing"
 
 	"github.com/felipeelias/claude-statusline/internal/config"
 	"github.com/felipeelias/claude-statusline/internal/input"
 	"github.com/felipeelias/claude-statusline/internal/modules"
+	"github.com/felipeelias/claude-statusline/internal/testutil"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
-
-func unsetTestEnv(t *testing.T) {
-	t.Helper()
-	t.Setenv("CSL_TEST_UNSET", "")
-	require.NoError(t, os.Unsetenv("CSL_TEST_UNSET"))
-}
 
 func envVarConfig(instances map[string]config.EnvVarConfig) config.Config {
 	cfg := config.Default()
@@ -55,14 +49,14 @@ func TestEnvVarModule_Render(t *testing.T) {
 	})
 
 	t.Run("unset variable without default renders empty", func(t *testing.T) {
-		unsetTestEnv(t)
+		testutil.UnsetEnv(t, "CSL_TEST_UNSET")
 		cfg := envVarConfig(map[string]config.EnvVarConfig{"CSL_TEST_UNSET": {Format: "x{{.Value}}"}})
 
 		assert.Empty(t, renderEnvVar(t, "CSL_TEST_UNSET", cfg))
 	})
 
 	t.Run("unset variable uses default", func(t *testing.T) {
-		unsetTestEnv(t)
+		testutil.UnsetEnv(t, "CSL_TEST_UNSET")
 		fallback := "none"
 		cfg := envVarConfig(map[string]config.EnvVarConfig{"CSL_TEST_UNSET": {Default: &fallback}})
 
@@ -70,7 +64,7 @@ func TestEnvVarModule_Render(t *testing.T) {
 	})
 
 	t.Run("empty default still counts as configured", func(t *testing.T) {
-		unsetTestEnv(t)
+		testutil.UnsetEnv(t, "CSL_TEST_UNSET")
 		fallback := ""
 		cfg := envVarConfig(map[string]config.EnvVarConfig{
 			"CSL_TEST_UNSET": {Default: &fallback, Format: "[{{.Value}}]"},
@@ -112,7 +106,7 @@ func TestEnvVarModule_Render(t *testing.T) {
 	t.Run("empty instance renders all instances", func(t *testing.T) {
 		t.Setenv("CSL_TEST_A", "a")
 		t.Setenv("CSL_TEST_B", "b")
-		unsetTestEnv(t)
+		testutil.UnsetEnv(t, "CSL_TEST_UNSET")
 		cfg := envVarConfig(map[string]config.EnvVarConfig{
 			"CSL_TEST_B":     {Format: "[{{.Value}}]"},
 			"CSL_TEST_A":     {Format: "[{{.Value}}]"},

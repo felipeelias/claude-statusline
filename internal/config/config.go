@@ -159,12 +159,7 @@ type EnvVarConfig struct {
 // without a recorded position, such as those set programmatically, follow in
 // sorted order.
 func (c Config) EnvVarNames() []string {
-	names := make([]string, 0, len(c.EnvVar))
-	for _, name := range c.envVarOrder {
-		if _, ok := c.EnvVar[name]; ok && !slices.Contains(names, name) {
-			names = append(names, name)
-		}
-	}
+	names := slices.Clone(c.envVarOrder)
 
 	var rest []string
 	for name := range c.EnvVar {
@@ -360,7 +355,7 @@ func Load(path string) (Config, error) {
 	}
 
 	for _, key := range meta.Keys() {
-		if len(key) >= 2 && key[0] == "env_var" {
+		if len(key) >= 2 && key[0] == "env_var" && !slices.Contains(cfg.envVarOrder, key[1]) {
 			cfg.envVarOrder = append(cfg.envVarOrder, key[1])
 		}
 	}

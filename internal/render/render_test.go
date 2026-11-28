@@ -9,6 +9,7 @@ import (
 	"github.com/felipeelias/claude-statusline/internal/config"
 	"github.com/felipeelias/claude-statusline/internal/input"
 	"github.com/felipeelias/claude-statusline/internal/render"
+	"github.com/felipeelias/claude-statusline/internal/testutil"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -356,24 +357,11 @@ func loadConfig(t *testing.T, content string) config.Config {
 	return cfg
 }
 
-func unsetTestEnv(t *testing.T) {
-	t.Helper()
-	t.Setenv("CSL_TEST_UNSET", "")
-	require.NoError(t, os.Unsetenv("CSL_TEST_UNSET"))
-}
-
 func TestRenderEnvVarInstance(t *testing.T) {
 	cfg := loadConfig(t, `
 format = "${env_var.CSL_TEST_SANDBOX} $model | $cost"
 
-[model]
-style = ""
-
-[cost]
-style = ""
-
 [env_var.CSL_TEST_SANDBOX]
-disabled = false
 format = '{{if eq .Value "agent-safehouse"}}📦{{end}}'
 `)
 	data := input.Data{
@@ -384,35 +372,29 @@ format = '{{if eq .Value "agent-safehouse"}}📦{{end}}'
 	t.Setenv("CSL_TEST_SANDBOX", "agent-safehouse")
 	result, err := render.Render(cfg, data)
 	require.NoError(t, err)
-	assert.Equal(t, "📦 Opus | $1.00", result)
+	assert.Equal(t, "📦 Opus | $1.00", visibleText(result))
 
 	t.Setenv("CSL_TEST_SANDBOX", "other")
 	result, err = render.Render(cfg, data)
 	require.NoError(t, err)
-	assert.Equal(t, " Opus | $1.00", result)
+	assert.Equal(t, " Opus | $1.00", visibleText(result))
 }
 
 func TestRenderEnvVarDropsEmptySection(t *testing.T) {
 	cfg := loadConfig(t, `
 format = "$model | ${env_var.CSL_TEST_UNSET} | $cost"
 
-[model]
-style = ""
-
-[cost]
-style = ""
-
 [env_var.CSL_TEST_UNSET]
 style = "bold"
 `)
-	unsetTestEnv(t)
+	testutil.UnsetEnv(t, "CSL_TEST_UNSET")
 
 	result, err := render.Render(cfg, input.Data{
 		Model: input.Model{DisplayName: "Opus"},
 		Cost:  input.Cost{TotalCostUSD: 1},
 	})
 	require.NoError(t, err)
-	assert.Equal(t, "Opus | $1.00", result)
+	assert.Equal(t, "Opus | $1.00", visibleText(result))
 }
 
 func TestRenderAllEnvVarsInDefinitionOrder(t *testing.T) {
@@ -438,7 +420,7 @@ format = "[{{.Name}}:{{.Value}}]"
 `)
 	t.Setenv("CSL_TEST_Z", "z")
 	t.Setenv("CSL_TEST_A", "a")
-	unsetTestEnv(t)
+	testutil.UnsetEnv(t, "CSL_TEST_UNSET")
 
 	result, err := render.Render(cfg, input.Data{})
 	require.NoError(t, err)
@@ -452,4 +434,14 @@ func TestRenderUnknownBracedModuleStaysLiteral(t *testing.T) {
 	result, err := render.Render(cfg, input.Data{})
 	require.NoError(t, err)
 	assert.Equal(t, "a${custom.foo}b", result)
+}
+
+func TestRenderBracedModuleReference(t *testing.T) {
+	cfg := config.Default()
+	cfg.Format = "${model}!"
+	cfg.Model.Style = ""
+
+	result, err := render.Render(cfg, input.Data{Model: input.Model{DisplayName: "Opus"}})
+	require.NoError(t, err)
+	assert.Equal(t, "Opus!", result)
 }
