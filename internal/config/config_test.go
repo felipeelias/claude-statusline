@@ -151,6 +151,22 @@ disabled = true
 	assert.True(t, cfg.EnvVar["MIDDLE"].Disabled)
 }
 
+func TestLoadEnvVarDottedKeysInDefinitionOrder(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "config.toml")
+	require.NoError(t, os.WriteFile(path, []byte(`
+env_var.Z.format = "z"
+env_var.A.format = "a"
+
+[env_var.M]
+format = "m"
+`), 0o644))
+
+	cfg, err := config.Load(path)
+	require.NoError(t, err)
+	assert.Equal(t, []string{"Z", "A", "M"}, cfg.EnvVarNames())
+}
+
 func TestEnvVarNamesWithoutRecordedOrderAreSorted(t *testing.T) {
 	cfg := config.Default()
 	cfg.EnvVar = map[string]config.EnvVarConfig{"b": {}, "a": {}, "c": {}}

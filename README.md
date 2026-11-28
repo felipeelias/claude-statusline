@@ -287,7 +287,7 @@ The module renders empty if vim mode is not enabled or the mode string is empty.
 
 ### Environment variable module
 
-The `env_var` module renders environment variables. Each `[env_var.<NAME>]` table defines one instance; reference it as `${env_var.NAME}`, or use `$env_var` to render every instance in definition order.
+The `env_var` module renders environment variables. Each `[env_var.<NAME>]` table defines one instance; reference it as `${env_var.NAME}`, or use `$env_var` to render every instance in definition order, separated by spaces.
 
 ```toml
 format = "${env_var.APP_SANDBOX_CONTAINER_ID} $directory | $git_branch | $model"

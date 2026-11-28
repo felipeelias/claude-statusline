@@ -11,7 +11,7 @@ import (
 const defaultEnvVarFormat = "{{.Value}}"
 
 // EnvVarModule renders the env_var instance named by Instance, or every
-// instance in definition order when Instance is empty.
+// instance in definition order, space-separated, when Instance is empty.
 type EnvVarModule struct {
 	Instance string
 }
@@ -23,7 +23,7 @@ func (m EnvVarModule) Render(_ input.Data, cfg config.Config) (string, error) {
 		return renderEnvVar(m.Instance, cfg)
 	}
 
-	var result strings.Builder
+	var parts []string
 
 	for _, name := range cfg.EnvVarNames() {
 		rendered, err := renderEnvVar(name, cfg)
@@ -31,10 +31,12 @@ func (m EnvVarModule) Render(_ input.Data, cfg config.Config) (string, error) {
 			return "", err
 		}
 
-		result.WriteString(rendered)
+		if rendered != "" {
+			parts = append(parts, rendered)
+		}
 	}
 
-	return result.String(), nil
+	return strings.Join(parts, " "), nil
 }
 
 func renderEnvVar(instance string, cfg config.Config) (string, error) {

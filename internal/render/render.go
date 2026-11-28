@@ -145,7 +145,7 @@ func renderMatch(
 			return modules.EnvVarModule{Instance: instance}.Render(data, cfg)
 		}
 
-		return "", nil
+		return format[loc[0]:loc[1]], nil
 	}
 
 	if loc[10] != -1 {

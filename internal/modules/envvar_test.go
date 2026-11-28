@@ -119,7 +119,7 @@ func TestEnvVarModule_Render(t *testing.T) {
 			"CSL_TEST_UNSET": {Format: "[{{.Value}}]"},
 		})
 
-		assert.Equal(t, "[a][b]", renderEnvVar(t, "", cfg))
+		assert.Equal(t, "[a] [b]", renderEnvVar(t, "", cfg))
 	})
 
 	t.Run("invalid template returns error", func(t *testing.T) {

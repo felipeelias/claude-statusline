@@ -442,14 +442,14 @@ format = "[{{.Name}}:{{.Value}}]"
 
 	result, err := render.Render(cfg, input.Data{})
 	require.NoError(t, err)
-	assert.Equal(t, "<[z][a][CSL_TEST_UNSET:none]>", result)
+	assert.Equal(t, "<[z] [a] [CSL_TEST_UNSET:none]>", result)
 }
 
-func TestRenderUnknownBracedModule(t *testing.T) {
+func TestRenderUnknownBracedModuleStaysLiteral(t *testing.T) {
 	cfg := config.Default()
 	cfg.Format = "a${custom.foo}b"
 
 	result, err := render.Render(cfg, input.Data{})
 	require.NoError(t, err)
-	assert.Equal(t, "ab", result)
+	assert.Equal(t, "a${custom.foo}b", result)
 }

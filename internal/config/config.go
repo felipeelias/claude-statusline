@@ -360,7 +360,7 @@ func Load(path string) (Config, error) {
 	}
 
 	for _, key := range meta.Keys() {
-		if len(key) == 2 && key[0] == "env_var" {
+		if len(key) >= 2 && key[0] == "env_var" {
 			cfg.envVarOrder = append(cfg.envVarOrder, key[1])
 		}
 	}
